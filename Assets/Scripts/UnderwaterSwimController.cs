@@ -1,0 +1,169 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+/// <summary>
+/// Handles simple 3D swim-style locomotion using the new Input System.
+/// Attach to the player root (e.g. Gary) that also owns a PlayerInput component.
+/// </summary>
+[RequireComponent(typeof(PlayerInput))]
+public class UnderwaterSwimController : MonoBehaviour
+{
+    [Header("Movement")]
+    [SerializeField] private float swimSpeed = 4f;
+    [SerializeField] private float sprintMultiplier = 1.5f;
+    [SerializeField] private float acceleration = 8f;
+    [SerializeField] private float rotationDamping = 10f;
+
+    [Header("Vertical Movement")]
+    [SerializeField] private float verticalSwimSpeed = 3f;
+    [SerializeField] private Vector3 rotationPivotOffset = new Vector3(0f, 1f, 0f);
+
+    [Header("References")]
+    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private Animator animator;
+
+    [Header("Animation Parameters")]
+    [SerializeField] private string speedParameter = "SwimSpeed";
+    [SerializeField] private string swimmingBoolParameter = "IsSwimming";
+
+    private PlayerInput playerInput;
+    private InputAction moveAction;
+    private InputAction jumpAction;
+    private InputAction crouchAction;
+    private InputAction sprintAction;
+
+    private Vector3 currentVelocity;
+
+    private int speedParamHash;
+    private int swimmingBoolHash;
+
+    private void Awake()
+    {
+        playerInput = GetComponent<PlayerInput>();
+        if (playerInput == null)
+        {
+            Debug.LogError("UnderwaterSwimController requires a PlayerInput component on the same GameObject.");
+            enabled = false;
+            return;
+        }
+
+        InputActionAsset actions = playerInput.actions;
+        if (actions == null)
+        {
+            Debug.LogError("PlayerInput requires an InputActionAsset assigned to provide controls.");
+            enabled = false;
+            return;
+        }
+
+        moveAction = actions.FindAction("Move");
+        jumpAction = actions.FindAction("Jump");
+        crouchAction = actions.FindAction("Crouch");
+        sprintAction = actions.FindAction("Sprint");
+
+        if (cameraTransform == null && Camera.main != null)
+        {
+            cameraTransform = Camera.main.transform;
+        }
+
+        if (animator != null)
+        {
+            // Ensure locomotion is entirely code-driven; prevents swim clips with root motion from double-moving the character.
+            animator.applyRootMotion = false;
+            speedParamHash = string.IsNullOrEmpty(speedParameter) ? 0 : Animator.StringToHash(speedParameter);
+            swimmingBoolHash = string.IsNullOrEmpty(swimmingBoolParameter) ? 0 : Animator.StringToHash(swimmingBoolParameter);
+        }
+    }
+
+    private void OnEnable()
+    {
+        moveAction?.Enable();
+        jumpAction?.Enable();
+        crouchAction?.Enable();
+        sprintAction?.Enable();
+    }
+
+    private void OnDisable()
+    {
+        moveAction?.Disable();
+        jumpAction?.Disable();
+        crouchAction?.Disable();
+        sprintAction?.Disable();
+    }
+
+    private void Update()
+    {
+        if (moveAction == null)
+        {
+            return;
+        }
+
+        Vector2 moveInput = moveAction.ReadValue<Vector2>();
+        float ascend = jumpAction != null && jumpAction.IsPressed() ? 1f : 0f;
+        float descend = crouchAction != null && crouchAction.IsPressed() ? 1f : 0f;
+        float verticalInput = ascend - descend;
+        bool sprinting = sprintAction != null && sprintAction.IsPressed();
+
+        Transform referenceTransform = cameraTransform != null ? cameraTransform : transform;
+        Vector3 forward = referenceTransform.forward;
+        Vector3 right = referenceTransform.right;
+
+        // Remove any unintended vertical influence from the camera when calculating planar movement.
+        forward.y = 0f;
+        right.y = 0f;
+        forward.Normalize();
+        right.Normalize();
+
+        Vector3 desiredHorizontal = forward * moveInput.y + right * moveInput.x;
+        Vector3 desiredVertical = Vector3.up * verticalInput;
+
+        Vector3 desiredVelocity = desiredHorizontal + desiredVertical * (verticalSwimSpeed / Mathf.Max(swimSpeed, 0.01f));
+        if (desiredVelocity.sqrMagnitude > 1f)
+        {
+            desiredVelocity.Normalize();
+        }
+
+        float currentSpeed = swimSpeed * (sprinting ? sprintMultiplier : 1f);
+        desiredVelocity *= currentSpeed;
+
+        // Exponential lerp for smooth acceleration/deceleration.
+        float lerpFactor = 1f - Mathf.Exp(-acceleration * Time.deltaTime);
+        currentVelocity = Vector3.Lerp(currentVelocity, desiredVelocity, lerpFactor);
+
+        transform.position += currentVelocity * Time.deltaTime;
+
+        Vector3 flatVelocity = new Vector3(currentVelocity.x, 0f, currentVelocity.z);
+        if (flatVelocity.sqrMagnitude > 0.0001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(flatVelocity.normalized, Vector3.up);
+            Quaternion smoothedRotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationDamping * Time.deltaTime);
+
+            Vector3 worldPivotBefore = transform.position + transform.TransformVector(rotationPivotOffset);
+            transform.rotation = smoothedRotation;
+            Vector3 worldPivotAfter = transform.position + transform.TransformVector(rotationPivotOffset);
+            transform.position += worldPivotBefore - worldPivotAfter;
+        }
+
+        UpdateAnimator(currentVelocity, currentSpeed);
+    }
+
+    private void UpdateAnimator(Vector3 velocity, float maxSpeed)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        float normalizedSpeed = maxSpeed > 0.01f ? velocity.magnitude / maxSpeed : 0f;
+
+        if (speedParamHash != 0)
+        {
+            animator.SetFloat(speedParamHash, normalizedSpeed, 0.1f, Time.deltaTime);
+        }
+
+        if (swimmingBoolHash != 0)
+        {
+            bool isSwimming = normalizedSpeed > 0.05f;
+            animator.SetBool(swimmingBoolHash, isSwimming);
+        }
+    }
+}

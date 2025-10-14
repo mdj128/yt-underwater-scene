@@ -1,0 +1,114 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+/// <summary>
+/// Simple third-person orbit camera that follows a target while reading the Input System "Look" action.
+/// Attach to the active camera in the scene.
+/// </summary>
+public class ThirdPersonCameraController : MonoBehaviour
+{
+    [SerializeField] private Transform target;
+    [SerializeField] private Vector3 offset = new Vector3(0f, 1.5f, -4f);
+    [SerializeField] private float followSmoothTime = 0.1f;
+    [SerializeField] private float orbitSensitivity = 120f;
+    [SerializeField] private float minPitch = -60f;
+    [SerializeField] private float maxPitch = 75f;
+    [SerializeField] private InputActionReference lookAction;
+    [SerializeField] private bool requireHoldForOrbit = true;
+    [SerializeField] private InputActionReference orbitHoldAction;
+
+    private Vector3 followVelocity;
+    private float yaw;
+    private float pitch;
+
+    private void Awake()
+    {
+        if (target == null)
+        {
+            Debug.LogWarning($"{nameof(ThirdPersonCameraController)} has no target assigned. The camera will not track anything until a target is set.");
+        }
+    }
+
+    private void OnEnable()
+    {
+        EnableAction(lookAction, $"{nameof(ThirdPersonCameraController)} has no look action assigned. Mouse/gamepad orbit will be disabled.");
+        if (requireHoldForOrbit && orbitHoldAction != null)
+        {
+            EnableAction(orbitHoldAction, string.Empty);
+        }
+        else if (requireHoldForOrbit && orbitHoldAction == null)
+        {
+            Debug.Log($"[{nameof(ThirdPersonCameraController)}] No hold action assigned. Defaulting to Mouse right button.");
+        }
+
+        InitializeAngles();
+    }
+
+    private void OnDisable()
+    {
+        lookAction?.action.Disable();
+        orbitHoldAction?.action.Disable();
+    }
+
+    private void LateUpdate()
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        UpdateOrbit();
+        UpdatePosition();
+    }
+
+    public void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+        InitializeAngles();
+    }
+
+    private void InitializeAngles()
+    {
+        Vector3 euler = transform.eulerAngles;
+        yaw = euler.y;
+        pitch = euler.x;
+    }
+
+    private void UpdateOrbit()
+    {
+        bool allowOrbit = !requireHoldForOrbit;
+        if (requireHoldForOrbit && orbitHoldAction != null)
+        {
+            allowOrbit = orbitHoldAction.action.IsPressed();
+        }
+        else if (requireHoldForOrbit && orbitHoldAction == null && Mouse.current != null)
+        {
+            allowOrbit = Mouse.current.rightButton.isPressed;
+        }
+
+        Vector2 lookInput = allowOrbit && lookAction != null ? lookAction.action.ReadValue<Vector2>() : Vector2.zero;
+        yaw += lookInput.x * orbitSensitivity * Time.deltaTime;
+        pitch -= lookInput.y * orbitSensitivity * Time.deltaTime;
+        pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
+
+        transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+    }
+
+    private void UpdatePosition()
+    {
+        Vector3 desiredPosition = target.position + transform.rotation * offset;
+        transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref followVelocity, followSmoothTime);
+    }
+
+    private void EnableAction(InputActionReference actionReference, string warningMessage)
+    {
+        if (actionReference != null)
+        {
+            actionReference.action.Enable();
+        }
+        else if (!string.IsNullOrEmpty(warningMessage))
+        {
+            Debug.LogWarning(warningMessage);
+        }
+    }
+}

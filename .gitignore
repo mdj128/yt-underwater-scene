@@ -1,0 +1,56 @@
+# Unity generated files
+/Library/
+/Temp/
+/Obj/
+/Logs/
+/UserSettings/
+/MemoryCaptures/
+/Records/
+/Assets/AssetStoreTools*
+/Assets/StreamingAssets/aa.meta
+/Assets/StreamingAssets/aa/
+/Assets/AddressableAssetsData/*
+
+# Visual Studio / JetBrains
+/.vs/
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.unityproj
+*.dll
+*.pdb
+*.mdb
+*.pidb
+*.opendb
+*.VC.db
+Assembly-CSharp.csproj
+Assembly-CSharp-Editor.csproj
+Assembly-CSharp-FirstPass.csproj
+Assembly-CSharp-Editor-firstpass.csproj
+
+# Unity cache / artifacts
+/Assets/StreamingAssets/UnityServicesProjectConfiguration.json
+/ProjectSettings/EditorBuildSettings.asset.backup*
+/ProjectSettings/ProjectVersion.txt.backup*
+
+# OS specific
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Rider / VS Code
+/.idea/
+.idea/
+.vscode/
+
+# Crash logs
+/sysinfo.log
+
+# Build artifacts
+/Build/
+/Builds/
+/Build.meta
+/Builds.meta

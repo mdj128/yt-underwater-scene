@@ -17,6 +17,7 @@ public class UnderwaterSwimController : MonoBehaviour
     [Header("Vertical Movement")]
     [SerializeField] private float verticalSwimSpeed = 3f;
     [SerializeField] private Vector3 rotationPivotOffset = new Vector3(0f, 1f, 0f);
+    [SerializeField, Range(0f, 1f)] private float cameraPitchVerticalInfluence = 0.75f;
 
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
@@ -104,7 +105,14 @@ public class UnderwaterSwimController : MonoBehaviour
         Vector2 moveInput = moveAction.ReadValue<Vector2>();
         float ascend = jumpAction != null && jumpAction.IsPressed() ? 1f : 0f;
         float descend = crouchAction != null && crouchAction.IsPressed() ? 1f : 0f;
-        float verticalInput = ascend - descend;
+        float cameraVertical = 0f;
+        if (cameraTransform != null && Mathf.Abs(moveInput.y) > 0.01f)
+        {
+            cameraVertical = cameraTransform.forward.y * moveInput.y * cameraPitchVerticalInfluence;
+        }
+
+        float verticalInput = ascend - descend + cameraVertical;
+        verticalInput = Mathf.Clamp(verticalInput, -1f, 1f);
         bool sprinting = sprintAction != null && sprintAction.IsPressed();
 
         Transform referenceTransform = cameraTransform != null ? cameraTransform : transform;

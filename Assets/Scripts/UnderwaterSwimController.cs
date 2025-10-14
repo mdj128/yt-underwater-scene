@@ -36,6 +36,9 @@ public class UnderwaterSwimController : MonoBehaviour
 
     private int speedParamHash;
     private int swimmingBoolHash;
+    private float defaultAnimatorSpeed = 1f;
+
+    public Vector3 CurrentVelocity => currentVelocity;
 
     private void Awake()
     {
@@ -69,6 +72,7 @@ public class UnderwaterSwimController : MonoBehaviour
         {
             // Ensure locomotion is entirely code-driven; prevents swim clips with root motion from double-moving the character.
             animator.applyRootMotion = false;
+            defaultAnimatorSpeed = animator.speed;
             speedParamHash = string.IsNullOrEmpty(speedParameter) ? 0 : Animator.StringToHash(speedParameter);
             swimmingBoolHash = string.IsNullOrEmpty(swimmingBoolParameter) ? 0 : Animator.StringToHash(swimmingBoolParameter);
         }
@@ -143,10 +147,10 @@ public class UnderwaterSwimController : MonoBehaviour
             transform.position += worldPivotBefore - worldPivotAfter;
         }
 
-        UpdateAnimator(currentVelocity, currentSpeed);
+        UpdateAnimator(currentVelocity, currentSpeed, sprinting);
     }
 
-    private void UpdateAnimator(Vector3 velocity, float maxSpeed)
+    private void UpdateAnimator(Vector3 velocity, float maxSpeed, bool sprinting)
     {
         if (animator == null)
         {
@@ -165,5 +169,7 @@ public class UnderwaterSwimController : MonoBehaviour
             bool isSwimming = normalizedSpeed > 0.05f;
             animator.SetBool(swimmingBoolHash, isSwimming);
         }
+
+        animator.speed = sprinting ? defaultAnimatorSpeed * sprintMultiplier : defaultAnimatorSpeed;
     }
 }

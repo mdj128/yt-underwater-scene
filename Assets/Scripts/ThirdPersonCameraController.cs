@@ -13,9 +13,12 @@ public class ThirdPersonCameraController : MonoBehaviour
     [SerializeField] private float orbitSensitivity = 120f;
     [SerializeField] private float minPitch = -60f;
     [SerializeField] private float maxPitch = 75f;
+    [SerializeField] private float alignToTargetSharpness = 8f;
+    [SerializeField] private float alignVelocityThreshold = 0.2f;
     [SerializeField] private InputActionReference lookAction;
     [SerializeField] private bool requireHoldForOrbit = true;
     [SerializeField] private InputActionReference orbitHoldAction;
+    [SerializeField] private UnderwaterSwimController movementController;
 
     private Vector3 followVelocity;
     private float yaw;
@@ -26,6 +29,10 @@ public class ThirdPersonCameraController : MonoBehaviour
         if (target == null)
         {
             Debug.LogWarning($"{nameof(ThirdPersonCameraController)} has no target assigned. The camera will not track anything until a target is set.");
+        }
+        else if (movementController == null)
+        {
+            movementController = target.GetComponent<UnderwaterSwimController>();
         }
     }
 
@@ -64,6 +71,10 @@ public class ThirdPersonCameraController : MonoBehaviour
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
+        if (target != null && movementController == null)
+        {
+            movementController = target.GetComponent<UnderwaterSwimController>();
+        }
         InitializeAngles();
     }
 
@@ -90,6 +101,21 @@ public class ThirdPersonCameraController : MonoBehaviour
         yaw += lookInput.x * orbitSensitivity * Time.deltaTime;
         pitch -= lookInput.y * orbitSensitivity * Time.deltaTime;
         pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
+
+        bool hasOrbitInput = allowOrbit && lookInput.sqrMagnitude > 0.0001f;
+        bool shouldAlignToTarget = !hasOrbitInput && target != null;
+
+        if (shouldAlignToTarget && movementController != null)
+        {
+            shouldAlignToTarget = movementController.CurrentVelocity.sqrMagnitude > alignVelocityThreshold * alignVelocityThreshold;
+        }
+
+        if (shouldAlignToTarget)
+        {
+            float targetYaw = target.eulerAngles.y;
+            float lerpFactor = 1f - Mathf.Exp(-alignToTargetSharpness * Time.deltaTime);
+            yaw = Mathf.LerpAngle(yaw, targetYaw, lerpFactor);
+        }
 
         transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
     }

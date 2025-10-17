@@ -27,6 +27,10 @@ public class UnderwaterSwimController : MonoBehaviour
     [SerializeField] private string speedParameter = "SwimSpeed";
     [SerializeField] private string swimmingBoolParameter = "IsSwimming";
 
+    [Header("Water Volumes")]
+    [SerializeField] private bool requireWaterVolume;
+    [SerializeField] private float volumeCheckRadius = 0.1f;
+
     private PlayerInput playerInput;
     private InputAction moveAction;
     private InputAction jumpAction;
@@ -40,6 +44,8 @@ public class UnderwaterSwimController : MonoBehaviour
     private float defaultAnimatorSpeed = 1f;
 
     public Vector3 CurrentVelocity => currentVelocity;
+
+    public bool IsInWater => !requireWaterVolume || WaterVolume.IsPointInside(transform.position, volumeCheckRadius);
 
     private void Awake()
     {
@@ -132,6 +138,11 @@ public class UnderwaterSwimController : MonoBehaviour
         if (desiredVelocity.sqrMagnitude > 1f)
         {
             desiredVelocity.Normalize();
+        }
+
+        if (!IsInWater)
+        {
+            desiredVelocity = Vector3.zero;
         }
 
         float currentSpeed = swimSpeed * (sprinting ? sprintMultiplier : 1f);

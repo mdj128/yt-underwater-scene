@@ -48,6 +48,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 813953812161339275, guid: 90ada918673db194a83cf3afb0663cbc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.48641127
+      objectReference: {fileID: 0}
+    - target: {fileID: 983949556575612777, guid: 90ada918673db194a83cf3afb0663cbc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.48641127
+      objectReference: {fileID: 0}
+    - target: {fileID: 3830357659480019678, guid: 90ada918673db194a83cf3afb0663cbc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.48641127
+      objectReference: {fileID: 0}
     - target: {fileID: 8771091787928289351, guid: 90ada918673db194a83cf3afb0663cbc, type: 3}
       propertyPath: m_Name
       value: model.012_LOD_GROUP
@@ -83,7 +95,7 @@ LODGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2909336667354974605}
   serializedVersion: 2
-  m_LocalReferencePoint: {x: 0.2549913, y: 0.6482488, z: 0.008150905}
+  m_LocalReferencePoint: {x: 0.2549913, y: 0.16183752, z: 0.008150905}
   m_Size: 0.51978624
   m_FadeMode: 1
   m_AnimateCrossFading: 0

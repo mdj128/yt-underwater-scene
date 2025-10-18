@@ -122,7 +122,6 @@ LODGroup:
     renderers:
     - renderer: {fileID: 1305951239929987720}
   m_Enabled: 1
-
 --- !u!114 &3564814994882501312
 MonoBehaviour:
   m_ObjectHideFlags: 0

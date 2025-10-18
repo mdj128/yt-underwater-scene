@@ -117,12 +117,6 @@ LODGroup:
     renderers:
     - renderer: {fileID: 8233411020777973747}
   m_Enabled: 1
---- !u!23 &8233411020777973747 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: -3361335941625169577, guid: fa24272d893bd3542992d18b168e5c85, type: 3}
-  m_PrefabInstance: {fileID: 2529001496644443812}
-  m_PrefabAsset: {fileID: 0}
-
 --- !u!114 &5653608386853977802
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142,3 +136,8 @@ MonoBehaviour:
   bobPosition: 0
   bobDistance: 0.045
   bobSpeedMultiplier: 0.62
+--- !u!23 &8233411020777973747 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -3361335941625169577, guid: fa24272d893bd3542992d18b168e5c85, type: 3}
+  m_PrefabInstance: {fileID: 2529001496644443812}
+  m_PrefabAsset: {fileID: 0}

@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -283,6 +284,27 @@ MonoBehaviour:
   requireHoldForOrbit: 0
   orbitHoldAction: {fileID: 0}
   movementController: {fileID: 0}
+--- !u!114 &330585549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0fe708534739754ba7dc1d049d5b50e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnderwaterVisuals
+  playerController: {fileID: 1427139237}
+  includeCameraPosition: 1
+  cameraCheckRadius: 0.1
+  adjustFog: 1
+  underwaterFogColor: {r: 0.101960786, g: 0.6, b: 0.4367323, a: 1}
+  underwaterFogDensity: 0.08
+  underwaterFogMode: 3
+  transitionSpeed: 2
+  underwaterVolume: {fileID: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,6 +432,63 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1001 &785551047
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6543818697728931683, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_Name
+      value: model.001_LOD_GROUP
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 39.931736
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.00000166893
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 44.191505
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7696690575811608416, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3c67729e0bd4779449e394aa363f342b, type: 3}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,3 +858,4 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 1427139235}
   - {fileID: 1444352924}
+  - {fileID: 785551047}

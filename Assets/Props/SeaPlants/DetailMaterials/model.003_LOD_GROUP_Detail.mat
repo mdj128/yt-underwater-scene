@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: model.001_LOD_GROUP_Detail
+  m_Name: model.003_LOD_GROUP_Detail
   m_Shader: {fileID: 4800000, guid: 8bd87957c6b6b8445b10871f7111dd4b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

@@ -9,12 +9,14 @@ public class ThirdPersonCameraController : MonoBehaviour
 {
     [SerializeField] private Transform target;
     [SerializeField] private Vector3 offset = new Vector3(0f, 1.5f, -4f);
-    [SerializeField] private float followSmoothTime = 0.1f;
-    [SerializeField] private float orbitSensitivity = 120f;
+    [SerializeField] private float followSmoothTime = 0f;
+    [SerializeField] private float orbitSensitivity = 90f;
     [SerializeField] private float minPitch = -60f;
     [SerializeField] private float maxPitch = 75f;
     [SerializeField] private float alignToTargetSharpness = 8f;
     [SerializeField] private float alignVelocityThreshold = 0.2f;
+    [SerializeField] private float alignDelay = 0.25f;
+    [SerializeField] private bool autoAlignWhenIdle = false;
     [SerializeField] private InputActionReference lookAction;
     [SerializeField] private bool requireHoldForOrbit = true;
     [SerializeField] private InputActionReference orbitHoldAction;
@@ -23,6 +25,7 @@ public class ThirdPersonCameraController : MonoBehaviour
     private Vector3 followVelocity;
     private float yaw;
     private float pitch;
+    private float alignCooldown;
 
     private void Awake()
     {
@@ -103,7 +106,20 @@ public class ThirdPersonCameraController : MonoBehaviour
         pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
 
         bool hasOrbitInput = allowOrbit && lookInput.sqrMagnitude > 0.0001f;
-        bool shouldAlignToTarget = !hasOrbitInput && target != null;
+        if (hasOrbitInput)
+        {
+            alignCooldown = alignDelay;
+        }
+        else
+        {
+            alignCooldown = Mathf.Max(alignCooldown - Time.deltaTime, 0f);
+        }
+
+        bool shouldAlignToTarget = autoAlignWhenIdle &&
+                                   alignCooldown <= 0f &&
+                                   !hasOrbitInput &&
+                                   target != null &&
+                                   alignToTargetSharpness > 0f;
 
         if (shouldAlignToTarget && movementController != null)
         {
@@ -123,7 +139,16 @@ public class ThirdPersonCameraController : MonoBehaviour
     private void UpdatePosition()
     {
         Vector3 desiredPosition = target.position + transform.rotation * offset;
-        transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref followVelocity, followSmoothTime);
+        if (followSmoothTime < 0.001f)
+        {
+            transform.position = desiredPosition;
+            followVelocity = Vector3.zero;
+        }
+        else
+        {
+            float smoothTime = Mathf.Max(0.0001f, followSmoothTime);
+            transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref followVelocity, smoothTime);
+        }
     }
 
     private void EnableAction(InputActionReference actionReference, string warningMessage)

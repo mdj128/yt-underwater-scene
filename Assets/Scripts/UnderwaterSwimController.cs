@@ -13,6 +13,7 @@ public class UnderwaterSwimController : MonoBehaviour
     [SerializeField] private float sprintMultiplier = 1.5f;
     [SerializeField] private float acceleration = 8f;
     [SerializeField] private float rotationDamping = 10f;
+    [SerializeField, Range(0f, 0.95f)] private float turnAlignmentThreshold = 0.25f;
 
     [Header("Vertical Movement")]
     [SerializeField] private float verticalSwimSpeed = 3f;
@@ -148,16 +149,37 @@ public class UnderwaterSwimController : MonoBehaviour
         float currentSpeed = swimSpeed * (sprinting ? sprintMultiplier : 1f);
         desiredVelocity *= currentSpeed;
 
-        // Exponential lerp for smooth acceleration/deceleration.
-        float lerpFactor = 1f - Mathf.Exp(-acceleration * Time.deltaTime);
-        currentVelocity = Vector3.Lerp(currentVelocity, desiredVelocity, lerpFactor);
+        Vector3 desiredHorizontalVelocity = Vector3.ProjectOnPlane(desiredVelocity, Vector3.up);
+        Vector3 desiredVerticalVelocity = desiredVelocity - desiredHorizontalVelocity;
+
+        Vector3 targetPlanarDirection = Vector3.ProjectOnPlane(desiredHorizontal, Vector3.up);
+        if (desiredHorizontalVelocity.sqrMagnitude > 0.0001f)
+        {
+            Vector3 planarDir = desiredHorizontalVelocity.normalized;
+            float alignment = Vector3.Dot(transform.forward, planarDir);
+            float denominator = 1f - turnAlignmentThreshold;
+            float alignmentFactor = denominator > 0.0001f
+                ? Mathf.Clamp01((alignment - turnAlignmentThreshold) / denominator)
+                : 1f;
+
+            desiredHorizontalVelocity *= alignmentFactor;
+        }
+
+        Vector3 adjustedDesiredVelocity = desiredHorizontalVelocity + desiredVerticalVelocity;
+
+        float maxSpeedChange = acceleration * Time.deltaTime;
+        currentVelocity = Vector3.MoveTowards(currentVelocity, adjustedDesiredVelocity, maxSpeedChange);
 
         transform.position += currentVelocity * Time.deltaTime;
 
         Vector3 flatVelocity = new Vector3(currentVelocity.x, 0f, currentVelocity.z);
-        if (flatVelocity.sqrMagnitude > 0.0001f)
+        Vector3 desiredFacing = targetPlanarDirection.sqrMagnitude > 0.0001f
+            ? targetPlanarDirection.normalized
+            : (flatVelocity.sqrMagnitude > 0.0001f ? flatVelocity.normalized : Vector3.zero);
+
+        if (desiredFacing.sqrMagnitude > 0.0001f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(flatVelocity.normalized, Vector3.up);
+            Quaternion targetRotation = Quaternion.LookRotation(desiredFacing, Vector3.up);
             Quaternion smoothedRotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationDamping * Time.deltaTime);
 
             Vector3 worldPivotBefore = transform.position + transform.TransformVector(rotationPivotOffset);

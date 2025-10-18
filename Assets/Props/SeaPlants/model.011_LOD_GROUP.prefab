@@ -71,6 +71,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: fa24272d893bd3542992d18b168e5c85, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1284453135067336950}
+    - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: fa24272d893bd3542992d18b168e5c85, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5653608386853977802}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: fa24272d893bd3542992d18b168e5c85, type: 3}
 --- !u!23 &2822306138424002168 stripped
 MeshRenderer:
@@ -119,3 +122,23 @@ MeshRenderer:
   m_CorrespondingSourceObject: {fileID: -3361335941625169577, guid: fa24272d893bd3542992d18b168e5c85, type: 3}
   m_PrefabInstance: {fileID: 2529001496644443812}
   m_PrefabAsset: {fileID: 0}
+
+--- !u!114 &5653608386853977802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6530779062856818403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a668d3a148b04c8c899b35ee0562bc23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  swayAngle: 12
+  swaySpeed: 0.24
+  swayAxis: {x: 1, y: 0, z: 0}
+  phaseOffsetDegrees: 300
+  bobPosition: 0
+  bobDistance: 0.045
+  bobSpeedMultiplier: 0.62

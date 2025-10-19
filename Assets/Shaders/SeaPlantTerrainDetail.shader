@@ -13,6 +13,9 @@ Shader "Sea/Terrain/SeaPlantDetail"
         _SwayPhaseJitter("Instance Phase Jitter", Range(0, 4)) = 1.2
         _SwayNoiseStrength("Noise Strength", Range(0, 1)) = 0.35
         _SwayNoiseScale("Noise Scale", Range(0.01, 4)) = 0.6
+        _GroundSink("Base Ground Sink", Range(0, 0.3)) = 0.04
+        _GroundSlopeSink("Slope Sink Scale", Range(0, 0.6)) = 0.12
+        _GroundSinkHeightScale("Sink Height Falloff", Range(0.1, 8)) = 3.5
     }
 
     SubShader

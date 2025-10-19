@@ -22,6 +22,9 @@ CBUFFER_START(UnityPerMaterial)
     float _SwayPhaseJitter;
     float _SwayNoiseStrength;
     float _SwayNoiseScale;
+    float _GroundSink;
+    float _GroundSlopeSink;
+    float _GroundSinkHeightScale;
 CBUFFER_END
 
 struct Attributes
@@ -163,6 +166,12 @@ Varyings TerrainLitVertexSway(Attributes input)
     float instancePhase = (phaseNoise - 0.5f) * _SwayPhaseJitter * 6.2831853f;
 
     float3 positionOS = input.PositionOS.xyz;
+
+    float baseMask = saturate(1.0f - positionOS.y * _GroundSinkHeightScale);
+    float radial = length(positionOS.xz);
+    float sinkAmount = (_GroundSink + radial * _GroundSlopeSink) * baseMask;
+    positionOS.y -= sinkAmount;
+
     float heightMask = saturate(positionOS.y * _SwayHeightScale);
     positionOS = ApplySeaPlantSway(positionOS, instancePhase, heightMask);
 

@@ -14,7 +14,7 @@ Material:
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -30,13 +30,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _Cutoff: 0.4
+    - _GroundSink: 0.028
+    - _GroundSinkHeightScale: 5.03
+    - _GroundSlopeSink: 0.093
     - _SwayAmplitude: 0.12
     - _SwayHeightScale: 1.4
     - _SwayNoiseScale: 0.6
     - _SwayNoiseStrength: 0.35
     - _SwayPhaseJitter: 1.2
-    - _SwaySpeed: 0.8
-    - _SwayVertical: 0.02
+    - _SwaySpeed: 0.47
+    - _SwayVertical: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

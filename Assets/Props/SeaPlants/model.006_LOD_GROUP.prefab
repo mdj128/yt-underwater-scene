@@ -48,18 +48,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1281393885628704715, guid: c655c9c16b6dd704c80bf02c16a6e422, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.019251347
-      objectReference: {fileID: 0}
-    - target: {fileID: 6961911575993660711, guid: c655c9c16b6dd704c80bf02c16a6e422, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.019251347
-      objectReference: {fileID: 0}
-    - target: {fileID: 7113407588256644779, guid: c655c9c16b6dd704c80bf02c16a6e422, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.019251347
-      objectReference: {fileID: 0}
     - target: {fileID: 8771091787928289351, guid: c655c9c16b6dd704c80bf02c16a6e422, type: 3}
       propertyPath: m_Name
       value: model.006_LOD_GROUP
@@ -71,9 +59,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: c655c9c16b6dd704c80bf02c16a6e422, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2612531398961599213}
-    - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: c655c9c16b6dd704c80bf02c16a6e422, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6795273142619343351}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: c655c9c16b6dd704c80bf02c16a6e422, type: 3}
 --- !u!23 &1572206299837693597 stripped
 MeshRenderer:
@@ -103,41 +88,22 @@ LODGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8076330107546800236}
   serializedVersion: 2
-  m_LocalReferencePoint: {x: -0.679901, y: 0.20860013, z: 0.020387381}
+  m_LocalReferencePoint: {x: -0.679901, y: 0.22785148, z: 0.020387381}
   m_Size: 0.41720027
   m_FadeMode: 1
   m_AnimateCrossFading: 0
   m_LastLODIsBillboard: 0
   m_LODs:
-  - screenRelativeHeight: 0.25
+  - screenRelativeHeight: 0.6
     fadeTransitionWidth: 0
     renderers:
     - renderer: {fileID: 1812148274455211736}
-  - screenRelativeHeight: 0.1
+  - screenRelativeHeight: 0.3
     fadeTransitionWidth: 0
     renderers:
     - renderer: {fileID: 1572206299837693597}
-  - screenRelativeHeight: 0.02
+  - screenRelativeHeight: 0.12
     fadeTransitionWidth: 0
     renderers:
     - renderer: {fileID: 4471922205297217874}
   m_Enabled: 1
---- !u!114 &6795273142619343351
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8076330107546800236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a668d3a148b04c8c899b35ee0562bc23, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  swayAngle: 12
-  swaySpeed: 0.29
-  swayAxis: {x: 1, y: 0, z: 0}
-  phaseOffsetDegrees: 150
-  bobPosition: 0
-  bobDistance: 0.05
-  bobSpeedMultiplier: 0.7

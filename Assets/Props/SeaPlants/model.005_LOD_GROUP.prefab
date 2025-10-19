@@ -8,10 +8,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -8789310375013217677, guid: bc9dec436f4438045974b12980995681, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.49310803
-      objectReference: {fileID: 0}
     - target: {fileID: -3910990755373119420, guid: bc9dec436f4438045974b12980995681, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -52,17 +48,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7797884656660303805, guid: bc9dec436f4438045974b12980995681, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.49310803
-      objectReference: {fileID: 0}
     - target: {fileID: 8771091787928289351, guid: bc9dec436f4438045974b12980995681, type: 3}
       propertyPath: m_Name
       value: model.005_LOD_GROUP
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846360622582258947, guid: bc9dec436f4438045974b12980995681, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.49310803
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -71,9 +59,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: bc9dec436f4438045974b12980995681, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1909958376229935114}
-    - targetCorrespondingSourceObject: {fileID: 8771091787928289351, guid: bc9dec436f4438045974b12980995681, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2536571985141948358}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: bc9dec436f4438045974b12980995681, type: 3}
 --- !u!23 &610078753290503288 stripped
 MeshRenderer:
@@ -93,44 +78,25 @@ LODGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1757300689456889633}
   serializedVersion: 2
-  m_LocalReferencePoint: {x: -0.7058413, y: 0.1846841, z: 0.0042936616}
+  m_LocalReferencePoint: {x: -0.7058413, y: 0.67779213, z: 0.0042936616}
   m_Size: 0.3693682
   m_FadeMode: 1
   m_AnimateCrossFading: 0
   m_LastLODIsBillboard: 0
   m_LODs:
-  - screenRelativeHeight: 0.25
+  - screenRelativeHeight: 0.6
     fadeTransitionWidth: 0
     renderers:
     - renderer: {fileID: 610078753290503288}
-  - screenRelativeHeight: 0.1
+  - screenRelativeHeight: 0.3
     fadeTransitionWidth: 0
     renderers:
     - renderer: {fileID: 6265288441585977932}
-  - screenRelativeHeight: 0.02
+  - screenRelativeHeight: 0.12
     fadeTransitionWidth: 0
     renderers:
     - renderer: {fileID: 7120754194512509261}
   m_Enabled: 1
---- !u!114 &2536571985141948358
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1757300689456889633}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a668d3a148b04c8c899b35ee0562bc23, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  swayAngle: 12
-  swaySpeed: 0.23
-  swayAxis: {x: 1, y: 0, z: 0}
-  phaseOffsetDegrees: 120
-  bobPosition: 0
-  bobDistance: 0.04
-  bobSpeedMultiplier: 0.6
 --- !u!23 &6265288441585977932 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: -5248729257685256918, guid: bc9dec436f4438045974b12980995681, type: 3}

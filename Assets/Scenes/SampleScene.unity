@@ -486,7 +486,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.08
+      scalar: 0.16
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -5148,16 +5148,22 @@ MonoBehaviour:
   bubbleMeshOverride: {fileID: 0}
   bubbleSurfaceReference: {fileID: 4004279391996986941}
   bubbleBurstInterval: {x: 0.5, y: 1.6}
-  bubbleBurstCountRange: {x: 2, y: 8}
+  bubbleBurstCountRange: {x: 2, y: 20}
   bubbleSpawnRadius: 5
-  bubbleRiseSpeedRange: {x: 0.5, y: 1}
+  bubbleRiseSpeedRange: {x: 2, y: 4}
   bubbleRiseTimeRange: {x: 3, y: 6}
-  bubbleLocalOffset: {x: 0, y: 0, z: 0.25}
+  bubbleLocalOffset: {x: 0, y: -10, z: 10}
   bubbleActivationBlend: 0.2
-  bubbleRiseToSurface: 1
+  bubbleRiseToSurface: 0
   bubbleSurfaceOvershoot: 0
   bubbleMinimumLifetime: 1
   bubbleMaximumLifetime: 100
+  bubbleSizeRange: {x: 0.05, y: 0.16}
+  bubbleSmallSizeBias: 0.7
+  bubbleUseClusters: 1
+  bubbleClusterCountRange: {x: 1, y: 3}
+  bubbleClusterBubbleCountRange: {x: 6, y: 14}
+  bubbleClusterRadius: 0.18
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0

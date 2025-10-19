@@ -40,6 +40,12 @@ public class UnderwaterVisuals : MonoBehaviour
     [SerializeField] private float bubbleSurfaceOvershoot = 0.25f;
     [SerializeField] private float bubbleMinimumLifetime = 0.5f;
     [SerializeField] private float bubbleMaximumLifetime = 8f;
+    [SerializeField] private Vector2 bubbleSizeRange = new Vector2(0.05f, 0.16f);
+    [SerializeField, Range(0f, 1f)] private float bubbleSmallSizeBias = 0.7f;
+    [SerializeField] private bool bubbleUseClusters = true;
+    [SerializeField] private Vector2Int bubbleClusterCountRange = new Vector2Int(1, 3);
+    [SerializeField] private Vector2Int bubbleClusterBubbleCountRange = new Vector2Int(6, 14);
+    [SerializeField] private float bubbleClusterRadius = 0.18f;
 
     private bool originalFogEnabled;
     private Color originalFogColor;
@@ -189,24 +195,91 @@ public class UnderwaterVisuals : MonoBehaviour
 
     private void EmitBubbleBurst()
     {
-        int count = Mathf.Max(1, Random.Range(bubbleBurstCountRange.x, bubbleBurstCountRange.y + 1));
-        var emitPosition = transform.position + transform.TransformVector(bubbleLocalOffset);
+        var emitOrigin = transform.position + transform.TransformVector(bubbleLocalOffset);
 
-        for (int i = 0; i < count; i++)
+        if (bubbleUseClusters)
         {
-            Vector3 offset = Random.insideUnitSphere * bubbleSpawnRadius;
-            offset.y = Mathf.Abs(offset.y); // bias upwards
-
-            var emitParams = new ParticleSystem.EmitParams
-            {
-                position = emitPosition + offset,
-                velocity = Vector3.up * Random.Range(bubbleRiseSpeedRange.x, bubbleRiseSpeedRange.y),
-                applyShapeToPosition = false
-            };
-
-            ApplyBubbleLifetime(emitParams.position, ref emitParams);
-            bubbleParticleSystem.Emit(emitParams, 1);
+            EmitBubbleClusters(emitOrigin);
+            return;
         }
+
+        int bubbleCount = Mathf.Max(1, Random.Range(bubbleBurstCountRange.x, bubbleBurstCountRange.y + 1));
+        for (int i = 0; i < bubbleCount; i++)
+        {
+            Vector3 spawnPos = emitOrigin + SampleBubbleOffset(bubbleSpawnRadius);
+            EmitSingleBubble(spawnPos, preferSmall: false, desiredRiseTimeOverride: null);
+        }
+    }
+
+    private void EmitBubbleClusters(Vector3 emitOrigin)
+    {
+        int clusterCount = Mathf.Max(1, Random.Range(bubbleClusterCountRange.x, bubbleClusterCountRange.y + 1));
+        for (int c = 0; c < clusterCount; c++)
+        {
+            Vector3 clusterCenter = emitOrigin + SampleBubbleOffset(bubbleSpawnRadius);
+            float clusterRiseTime = Mathf.Clamp(Random.Range(bubbleRiseTimeRange.x, bubbleRiseTimeRange.y), bubbleMinimumLifetime, bubbleMaximumLifetime);
+            int bubblesInCluster = Mathf.Max(1, Random.Range(bubbleClusterBubbleCountRange.x, bubbleClusterBubbleCountRange.y + 1));
+
+            for (int i = 0; i < bubblesInCluster; i++)
+            {
+                Vector3 localOffset = SampleBubbleOffset(bubbleClusterRadius, forceUpwards: false);
+                Vector3 spawnPos = clusterCenter + localOffset;
+                if (spawnPos.y < clusterCenter.y)
+                {
+                    spawnPos.y = clusterCenter.y;
+                }
+                EmitSingleBubble(spawnPos, preferSmall: true, desiredRiseTimeOverride: clusterRiseTime);
+            }
+        }
+    }
+
+    private void EmitSingleBubble(Vector3 spawnPosition, bool preferSmall, float? desiredRiseTimeOverride)
+    {
+        float baseLifetime = Mathf.Clamp(
+            desiredRiseTimeOverride ?? Random.Range(bubbleRiseTimeRange.x, bubbleRiseTimeRange.y),
+            bubbleMinimumLifetime,
+            bubbleMaximumLifetime);
+        float baseSpeed = Mathf.Clamp(Random.Range(bubbleRiseSpeedRange.x, bubbleRiseSpeedRange.y), bubbleRiseSpeedRange.x, bubbleRiseSpeedRange.y);
+
+        var emitParams = new ParticleSystem.EmitParams
+        {
+            position = spawnPosition,
+            applyShapeToPosition = false,
+            startSize = SampleBubbleSize(preferSmall),
+            startLifetime = baseLifetime,
+            velocity = Vector3.up * baseSpeed
+        };
+
+        if (bubbleRiseToSurface)
+        {
+            ApplyBubbleLifetime(spawnPosition, ref emitParams, baseLifetime, null);
+        }
+
+        bubbleParticleSystem.Emit(emitParams, 1);
+    }
+
+    private static Vector3 SampleBubbleOffset(float radius, bool forceUpwards = true)
+    {
+        Vector3 offset = Random.insideUnitSphere * radius;
+        if (forceUpwards)
+        {
+            offset.y = Mathf.Abs(offset.y);
+        }
+        return offset;
+    }
+
+    private float SampleBubbleSize(bool preferSmall)
+    {
+        float min = Mathf.Max(0.001f, Mathf.Min(bubbleSizeRange.x, bubbleSizeRange.y));
+        float max = Mathf.Max(min, Mathf.Max(bubbleSizeRange.x, bubbleSizeRange.y));
+
+        float t = Random.value;
+        if (preferSmall)
+        {
+            float biasPower = Mathf.Lerp(1f, 4f, bubbleSmallSizeBias);
+            t = Mathf.Pow(t, biasPower);
+        }
+        return Mathf.Lerp(min, max, t);
     }
 
     private void ResetBubbleTimer()
@@ -278,6 +351,13 @@ public class UnderwaterVisuals : MonoBehaviour
         bubbleSurfaceOvershoot = Mathf.Max(0f, bubbleSurfaceOvershoot);
         bubbleMinimumLifetime = Mathf.Max(0.05f, bubbleMinimumLifetime);
         bubbleMaximumLifetime = Mathf.Max(bubbleMinimumLifetime, bubbleMaximumLifetime);
+        bubbleSizeRange.x = Mathf.Max(0.001f, bubbleSizeRange.x);
+        bubbleSizeRange.y = Mathf.Max(bubbleSizeRange.x, bubbleSizeRange.y);
+        bubbleClusterCountRange.x = Mathf.Max(1, bubbleClusterCountRange.x);
+        bubbleClusterCountRange.y = Mathf.Max(bubbleClusterCountRange.x, bubbleClusterCountRange.y);
+        bubbleClusterBubbleCountRange.x = Mathf.Max(1, bubbleClusterBubbleCountRange.x);
+        bubbleClusterBubbleCountRange.y = Mathf.Max(bubbleClusterBubbleCountRange.x, bubbleClusterBubbleCountRange.y);
+        bubbleClusterRadius = Mathf.Max(0f, bubbleClusterRadius);
 
         EnsureBubbleSystem();
         ApplyBubbleVisualSettings();
@@ -329,6 +409,7 @@ public class UnderwaterVisuals : MonoBehaviour
         main.startSpeed = 0f;
         main.startLifetime = bubbleMaximumLifetime;
         main.gravityModifier = 0f;
+        main.startSize = bubbleSizeRange.y;
     }
 
     private Material ResolveBubbleMaterial()
@@ -416,7 +497,7 @@ public class UnderwaterVisuals : MonoBehaviour
         return cachedSphereMesh;
     }
 
-    private void ApplyBubbleLifetime(Vector3 spawnPosition, ref ParticleSystem.EmitParams emitParams)
+    private void ApplyBubbleLifetime(Vector3 spawnPosition, ref ParticleSystem.EmitParams emitParams, float? desiredTimeOverride, float? speedOverride)
     {
         if (!bubbleRiseToSurface || bubbleParticleSystem == null)
         {
@@ -435,19 +516,21 @@ public class UnderwaterVisuals : MonoBehaviour
             return;
         }
 
-        float desiredTime = Random.Range(bubbleRiseTimeRange.x, bubbleRiseTimeRange.y);
+        float desiredTime = desiredTimeOverride.HasValue
+            ? desiredTimeOverride.Value
+            : Random.Range(bubbleRiseTimeRange.x, bubbleRiseTimeRange.y);
         desiredTime = Mathf.Clamp(desiredTime, bubbleMinimumLifetime, bubbleMaximumLifetime);
 
-        float speed = verticalDistance / Mathf.Max(0.01f, desiredTime);
+        float speed = speedOverride.HasValue
+            ? speedOverride.Value
+            : verticalDistance / Mathf.Max(0.01f, desiredTime);
         speed = Mathf.Clamp(speed, bubbleRiseSpeedRange.x, bubbleRiseSpeedRange.y);
 
         float adjustedLifetime = verticalDistance / Mathf.Max(0.01f, speed);
         adjustedLifetime = Mathf.Clamp(adjustedLifetime, bubbleMinimumLifetime, bubbleMaximumLifetime);
 
         emitParams.startLifetime = adjustedLifetime;
-        var velocity = emitParams.velocity;
-        velocity.y = speed;
-        emitParams.velocity = velocity;
+        emitParams.velocity = Vector3.up * speed;
     }
 
     private bool TryGetBubbleSurfaceHeight(Vector3 spawnPosition, out float surfaceHeight)

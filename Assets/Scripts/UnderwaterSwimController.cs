@@ -20,6 +20,12 @@ public class UnderwaterSwimController : MonoBehaviour
     [SerializeField] private Vector3 rotationPivotOffset = new Vector3(0f, 1f, 0f);
     [SerializeField, Range(0f, 1f)] private float cameraPitchVerticalInfluence = 0.75f;
 
+    [Header("Movement Limits")]
+    [SerializeField] private Terrain terrainLimit;
+    [SerializeField] private float terrainClearance = 0.1f;
+    [SerializeField] private bool clampToWorldHeight = false;
+    [SerializeField] private float maxWorldHeight = 0f;
+
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private Animator animator;
@@ -47,6 +53,11 @@ public class UnderwaterSwimController : MonoBehaviour
     public Vector3 CurrentVelocity => currentVelocity;
 
     public bool IsInWater => !requireWaterVolume || WaterVolume.IsPointInside(transform.position, volumeCheckRadius);
+
+    public Terrain TerrainLimit => terrainLimit;
+    public float TerrainClearance => terrainClearance;
+    public bool ClampToWorldHeight => clampToWorldHeight;
+    public float MaxWorldHeight => maxWorldHeight;
 
     private void Awake()
     {
@@ -170,7 +181,9 @@ public class UnderwaterSwimController : MonoBehaviour
         float maxSpeedChange = acceleration * Time.deltaTime;
         currentVelocity = Vector3.MoveTowards(currentVelocity, adjustedDesiredVelocity, maxSpeedChange);
 
-        transform.position += currentVelocity * Time.deltaTime;
+        Vector3 newPosition = transform.position + currentVelocity * Time.deltaTime;
+        ApplyMovementLimits(ref newPosition, adjustVelocity: true);
+        transform.position = newPosition;
 
         Vector3 flatVelocity = new Vector3(currentVelocity.x, 0f, currentVelocity.z);
         Vector3 desiredFacing = targetPlanarDirection.sqrMagnitude > 0.0001f
@@ -185,7 +198,9 @@ public class UnderwaterSwimController : MonoBehaviour
             Vector3 worldPivotBefore = transform.position + transform.TransformVector(rotationPivotOffset);
             transform.rotation = smoothedRotation;
             Vector3 worldPivotAfter = transform.position + transform.TransformVector(rotationPivotOffset);
-            transform.position += worldPivotBefore - worldPivotAfter;
+            Vector3 rotatedPosition = transform.position + worldPivotBefore - worldPivotAfter;
+            ApplyMovementLimits(ref rotatedPosition, adjustVelocity: false);
+            transform.position = rotatedPosition;
         }
 
         UpdateAnimator(currentVelocity, currentSpeed, sprinting);
@@ -212,5 +227,43 @@ public class UnderwaterSwimController : MonoBehaviour
         }
 
         animator.speed = sprinting ? defaultAnimatorSpeed * sprintMultiplier : defaultAnimatorSpeed;
+    }
+
+    private void ApplyMovementLimits(ref Vector3 position, bool adjustVelocity)
+    {
+        bool clampedBottom = false;
+        bool clampedTop = false;
+
+        if (terrainLimit != null)
+        {
+            Vector3 terrainOrigin = terrainLimit.transform.position;
+            float terrainHeight = terrainLimit.SampleHeight(position) + terrainOrigin.y + terrainClearance;
+            if (position.y < terrainHeight)
+            {
+                position.y = terrainHeight;
+                clampedBottom = true;
+            }
+        }
+
+        if (clampToWorldHeight && position.y > maxWorldHeight)
+        {
+            position.y = maxWorldHeight;
+            clampedTop = true;
+        }
+
+        if (!adjustVelocity)
+        {
+            return;
+        }
+
+        if (clampedBottom && currentVelocity.y < 0f)
+        {
+            currentVelocity.y = 0f;
+        }
+
+        if (clampedTop && currentVelocity.y > 0f)
+        {
+            currentVelocity.y = 0f;
+        }
     }
 }

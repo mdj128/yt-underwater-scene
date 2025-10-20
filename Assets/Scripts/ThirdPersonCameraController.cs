@@ -21,6 +21,9 @@ public class ThirdPersonCameraController : MonoBehaviour
     [SerializeField] private bool requireHoldForOrbit = true;
     [SerializeField] private InputActionReference orbitHoldAction;
     [SerializeField] private UnderwaterSwimController movementController;
+    [Header("Terrain Limits")]
+    [SerializeField] private Terrain terrainLimit;
+    [SerializeField] private float terrainClearance = 0.1f;
 
     private Vector3 followVelocity;
     private float yaw;
@@ -36,6 +39,15 @@ public class ThirdPersonCameraController : MonoBehaviour
         else if (movementController == null)
         {
             movementController = target.GetComponent<UnderwaterSwimController>();
+        }
+
+        if (terrainLimit == null && movementController != null)
+        {
+            terrainLimit = movementController.TerrainLimit;
+            if (Mathf.Approximately(terrainClearance, 0f))
+            {
+                terrainClearance = movementController.TerrainClearance;
+            }
         }
     }
 
@@ -139,6 +151,8 @@ public class ThirdPersonCameraController : MonoBehaviour
     private void UpdatePosition()
     {
         Vector3 desiredPosition = target.position + transform.rotation * offset;
+        ApplyTerrainClamp(ref desiredPosition, adjustVelocity: false);
+
         if (followSmoothTime < 0.001f)
         {
             transform.position = desiredPosition;
@@ -147,7 +161,9 @@ public class ThirdPersonCameraController : MonoBehaviour
         else
         {
             float smoothTime = Mathf.Max(0.0001f, followSmoothTime);
-            transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref followVelocity, smoothTime);
+            Vector3 smoothedPosition = Vector3.SmoothDamp(transform.position, desiredPosition, ref followVelocity, smoothTime);
+            ApplyTerrainClamp(ref smoothedPosition, adjustVelocity: true);
+            transform.position = smoothedPosition;
         }
     }
 
@@ -160,6 +176,25 @@ public class ThirdPersonCameraController : MonoBehaviour
         else if (!string.IsNullOrEmpty(warningMessage))
         {
             Debug.LogWarning(warningMessage);
+        }
+    }
+
+    private void ApplyTerrainClamp(ref Vector3 position, bool adjustVelocity)
+    {
+        if (terrainLimit == null)
+        {
+            return;
+        }
+
+        Vector3 terrainOrigin = terrainLimit.transform.position;
+        float terrainHeight = terrainLimit.SampleHeight(position) + terrainOrigin.y + terrainClearance;
+        if (position.y < terrainHeight)
+        {
+            position.y = terrainHeight;
+            if (adjustVelocity && followVelocity.y < 0f)
+            {
+                followVelocity.y = 0f;
+            }
         }
     }
 }

@@ -5121,6 +5121,8 @@ MonoBehaviour:
   requireHoldForOrbit: 0
   orbitHoldAction: {fileID: 0}
   movementController: {fileID: 0}
+  terrainLimit: {fileID: 0}
+  terrainClearance: 0.1
 --- !u!114 &330585549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5147,6 +5149,8 @@ MonoBehaviour:
   bubbleMaterialOverride: {fileID: 2100000, guid: e2329cdc2256a66439316e31a73d3cf2, type: 2}
   bubbleMeshOverride: {fileID: 0}
   bubbleSurfaceReference: {fileID: 4004279391996986941}
+  bubbleUseFixedSurfaceHeight: 1
+  bubbleFixedSurfaceHeight: 10
   bubbleBurstInterval: {x: 0.5, y: 1.6}
   bubbleBurstCountRange: {x: 2, y: 20}
   bubbleSpawnRadius: 5
@@ -5623,6 +5627,10 @@ MonoBehaviour:
   verticalSwimSpeed: 3
   rotationPivotOffset: {x: 0, y: 0, z: 0}
   cameraPitchVerticalInfluence: 0.75
+  terrainLimit: {fileID: 1444352923}
+  terrainClearance: 0.1
+  clampToWorldHeight: 1
+  maxWorldHeight: 9.5
   cameraTransform: {fileID: 330585546}
   animator: {fileID: 1427139239}
   speedParameter: SwimSpeed

@@ -123,6 +123,11 @@ public class UnderwaterVisuals : MonoBehaviour
 
         if (playerController != null)
         {
+            if (playerController.ClampToWorldHeight && transform.position.y >= playerController.MaxWorldHeight + 1f)
+            {
+                return false;
+            }
+
             underwater |= playerController.IsInWater;
         }
 

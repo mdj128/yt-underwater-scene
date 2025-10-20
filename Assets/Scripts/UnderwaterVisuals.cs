@@ -29,6 +29,8 @@ public class UnderwaterVisuals : MonoBehaviour
     [SerializeField] private Material bubbleMaterialOverride;
     [SerializeField] private Mesh bubbleMeshOverride;
     [SerializeField] private Transform bubbleSurfaceReference;
+    [SerializeField] private bool bubbleUseFixedSurfaceHeight;
+    [SerializeField] private float bubbleFixedSurfaceHeight;
     [SerializeField] private Vector2 bubbleBurstInterval = new Vector2(0.75f, 1.6f);
     [SerializeField] private Vector2Int bubbleBurstCountRange = new Vector2Int(3, 7);
     [SerializeField] private float bubbleSpawnRadius = 0.35f;
@@ -535,6 +537,12 @@ public class UnderwaterVisuals : MonoBehaviour
 
     private bool TryGetBubbleSurfaceHeight(Vector3 spawnPosition, out float surfaceHeight)
     {
+        if (bubbleUseFixedSurfaceHeight)
+        {
+            surfaceHeight = bubbleFixedSurfaceHeight;
+            return true;
+        }
+
         if (bubbleSurfaceReference != null)
         {
             surfaceHeight = bubbleSurfaceReference.position.y;

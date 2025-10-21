@@ -103,6 +103,7 @@ public class UnderwaterSwimController : MonoBehaviour
         jumpAction?.Enable();
         crouchAction?.Enable();
         sprintAction?.Enable();
+        SetCursorLock(true);
     }
 
     private void OnDisable()
@@ -111,6 +112,7 @@ public class UnderwaterSwimController : MonoBehaviour
         jumpAction?.Disable();
         crouchAction?.Disable();
         sprintAction?.Disable();
+        SetCursorLock(false);
     }
 
     private void Update()
@@ -206,6 +208,12 @@ public class UnderwaterSwimController : MonoBehaviour
         UpdateAnimator(currentVelocity, currentSpeed, sprinting);
     }
 
+    private void SetCursorLock(bool locked)
+    {
+        Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !locked;
+    }
+
     private void UpdateAnimator(Vector3 velocity, float maxSpeed, bool sprinting)
     {
         if (animator == null)
@@ -233,15 +241,42 @@ public class UnderwaterSwimController : MonoBehaviour
     {
         bool clampedBottom = false;
         bool clampedTop = false;
+        Vector3 terrainContactNormal = Vector3.up;
 
         if (terrainLimit != null)
         {
             Vector3 terrainOrigin = terrainLimit.transform.position;
-            float terrainHeight = terrainLimit.SampleHeight(position) + terrainOrigin.y + terrainClearance;
-            if (position.y < terrainHeight)
+            TerrainData data = terrainLimit.terrainData;
+            if (data != null)
             {
-                position.y = terrainHeight;
-                clampedBottom = true;
+                Vector3 localPosition = position - terrainOrigin;
+                Vector3 terrainSize = data.size;
+                float normalizedX = terrainSize.x > 0f ? Mathf.Clamp01(localPosition.x / terrainSize.x) : 0f;
+                float normalizedZ = terrainSize.z > 0f ? Mathf.Clamp01(localPosition.z / terrainSize.z) : 0f;
+
+                float terrainHeight = terrainLimit.SampleHeight(position) + terrainOrigin.y;
+                Vector3 surfacePoint = new Vector3(position.x, terrainHeight, position.z);
+                Vector3 terrainNormal = data.GetInterpolatedNormal(normalizedX, normalizedZ);
+                if (terrainNormal.sqrMagnitude > 0.0001f)
+                {
+                    terrainNormal.Normalize();
+                }
+                else
+                {
+                    terrainNormal = Vector3.up;
+                }
+
+                float clearance = Mathf.Max(terrainClearance, 0f);
+                Vector3 toPoint = position - surfacePoint;
+                float distanceAlongNormal = Vector3.Dot(toPoint, terrainNormal);
+
+                if (distanceAlongNormal < clearance)
+                {
+                    float penetration = clearance - distanceAlongNormal;
+                    position += terrainNormal * penetration;
+                    clampedBottom = true;
+                    terrainContactNormal = terrainNormal;
+                }
             }
         }
 
@@ -256,9 +291,13 @@ public class UnderwaterSwimController : MonoBehaviour
             return;
         }
 
-        if (clampedBottom && currentVelocity.y < 0f)
+        if (clampedBottom)
         {
-            currentVelocity.y = 0f;
+            float normalVelocity = Vector3.Dot(currentVelocity, terrainContactNormal);
+            if (normalVelocity < 0f)
+            {
+                currentVelocity -= terrainContactNormal * normalVelocity;
+            }
         }
 
         if (clampedTop && currentVelocity.y > 0f)

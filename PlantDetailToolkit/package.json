@@ -11,6 +11,7 @@
     "shader",
     "tools"
   ],
+  "documentationUrl": "Documentation~/index.md",
   "author": {
     "name": "budorf",
     "url": "https://github.com/mdj128"

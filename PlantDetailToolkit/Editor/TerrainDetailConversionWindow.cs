@@ -1012,6 +1012,7 @@ namespace Plant.TerrainDetails.Editor
                 usePrototypeMesh = true,
                 prototype = prefab,
                 renderMode = DetailRenderMode.VertexLit,
+                useInstancing = true,
                 minHeight = 0.9f,
                 maxHeight = 1.3f,
                 minWidth = 0.9f,

@@ -1,7 +1,7 @@
 {
   "name": "com.plant.detailtoolkit",
   "displayName": "Plant Terrain Detail Toolkit",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "unity": "2021.3",
   "description": "Editor tooling and shaders that convert static FBX/GLB meshes into animated terrain details ready for painting on Unity terrains.",
   "keywords": [

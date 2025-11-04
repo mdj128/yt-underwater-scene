@@ -77,8 +77,10 @@ float3 ApplyPlantSway(float3 positionOS, float instancePhase, float heightMask)
     float time = _Time.y * _SwaySpeed + instancePhase;
     float swayPrimary = sin(time);
     float swaySecondary = cos(time * 1.27 + instancePhase);
-    float noise = sin(dot(positionOS.xz, float2(1.358, 1.972)) * _SwayNoiseScale + instancePhase * 1.7);
-    float swayNoise = noise * _SwayNoiseStrength;
+    float windSync = saturate(_WindStrength);
+    float gustOffset = sin(dot(positionOS.xz, float2(0.047f, 0.083f)) + _Time.y * 0.3f);
+    float noise = sin(dot(positionOS.xz, float2(1.358, 1.972)) * _SwayNoiseScale + instancePhase * 1.7 + gustOffset * 0.6f);
+    float swayNoise = noise * lerp(_SwayNoiseStrength, _SwayNoiseStrength * 0.45f, windSync);
 
     float swayCombined = (swayPrimary + swayNoise) * _SwayAmplitude;
     float swayOrtho = (swaySecondary + swayNoise * 0.5) * _SwayAmplitude;
@@ -203,6 +205,8 @@ Varyings TerrainLitVertexSway(Attributes input)
     float3 instanceOrigin = GetInstanceOriginWS();
     float phaseNoise = Hash(instanceOrigin);
     float instancePhase = (phaseNoise - 0.5f) * _SwayPhaseJitter * 6.2831853f;
+    float syncBlend = saturate(1.0f - _WindStrength * 1.5f);
+    instancePhase *= syncBlend;
     half tipWeight = saturate(input.Color.a);
 
     float3 positionOS = input.PositionOS.xyz;

@@ -1,6 +1,6 @@
 # Plant Terrain Detail Toolkit
 
-The Plant Terrain Detail Toolkit wraps the plant conversion scripts and shaders into a Unity Package Manager package. It turns static mesh prefabs (FBX/GLB) into animated terrain detail assets that can be painted with the terrain tools.
+The Plant Terrain Detail Toolkit wraps the plant conversion scripts and shaders into a Unity Package Manager package. It turns static mesh assets (FBX/GLB models, prefabs, or standalone meshes) into animated terrain detail assets that can be painted with the terrain tools.
 
 ## Requirements
 
@@ -23,13 +23,14 @@ Replace the repository and branch information as needed.
 - Generates URP detail shader materials with configurable sway animation and alpha clipping.
 - Creates ready-to-paint prefab assets, leaving source prefabs untouched.
 - Copies diffuse textures and colors from the source material when possible.
+- Provides animation presets for underwater plants or above-ground grass sway.
 
 ## Usage
 
-1. Select one or more prefab assets in the Project window (FBX/GLB imports or regular prefabs).
+1. Select one or more assets in the Project window (FBX/GLB imports, prefabs, or individual mesh assets).
 2. Open **Tools ▸ Terrain Details ▸ Convert Mesh To Terrain Detail**.
 3. Pick an output folder inside `Assets/` for the generated meshes, materials, and prefabs.
-4. (Optional) Assign a different shader or tweak conversion options.
+4. (Optional) Assign a different shader, pick an animation preset, or tweak conversion options.
 5. Click **Convert Selected**. Mesh, material, and prefab assets will be generated in subfolders under the chosen output root.
 6. Assign the generated prefabs to a terrain detail prototype and paint them using Unity's terrain detail tools.
 

@@ -7,6 +7,12 @@ using UnityEngine;
 
 namespace Plant.TerrainDetails.Editor
 {
+    internal enum DetailAnimationPreset
+    {
+        UnderwaterSeaPlant,
+        Grass
+    }
+
     /// <summary>
     /// Editor window that converts static prefab assets into terrain detail meshes, materials, and prefabs.
     /// </summary>
@@ -26,6 +32,7 @@ namespace Plant.TerrainDetails.Editor
             public bool mergeLods;
             public bool inheritMaterialProperties;
             public bool logVerbose;
+            public string animationPreset;
         }
 
         [SerializeField] private Shader _detailShader;
@@ -36,6 +43,7 @@ namespace Plant.TerrainDetails.Editor
         [SerializeField] private bool _mergeLods = true;
         [SerializeField] private bool _inheritMaterialProperties = true;
         [SerializeField] private bool _logVerbose = false;
+        [SerializeField] private DetailAnimationPreset _animationPreset = DetailAnimationPreset.UnderwaterSeaPlant;
 
         private readonly List<UnityEngine.Object> _targets = new();
         private Vector2 _scroll;
@@ -78,6 +86,7 @@ namespace Plant.TerrainDetails.Editor
                 return;
             }
 
+            var seen = new HashSet<UnityEngine.Object>();
             foreach (var obj in selected)
             {
                 if (obj == null)
@@ -85,37 +94,66 @@ namespace Plant.TerrainDetails.Editor
                     continue;
                 }
 
-                if (obj is GameObject go && PrefabUtility.GetPrefabAssetType(go) != PrefabAssetType.NotAPrefab)
+                if (obj is DefaultAsset asset && AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(asset)))
                 {
-                    _targets.Add(go);
+                    continue;
                 }
-                else if (obj is DefaultAsset asset && AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(asset)))
+
+                if (IsSupportedAsset(obj))
                 {
-                    // Ignore folders from selection; they can still be used as output root.
-                }
-                else
-                {
-                    // Allow meshes nested inside models by resolving their root prefab.
-                    var path = AssetDatabase.GetAssetPath(obj);
-                    if (!string.IsNullOrEmpty(path))
+                    if (seen.Add(obj))
                     {
-                        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                        if (prefab != null && PrefabUtility.GetPrefabAssetType(prefab) != PrefabAssetType.NotAPrefab)
-                        {
-                            if (!_targets.Contains(prefab))
-                            {
-                                _targets.Add(prefab);
-                            }
-                        }
+                        _targets.Add(obj);
+                    }
+                    continue;
+                }
+
+                var path = AssetDatabase.GetAssetPath(obj);
+                if (string.IsNullOrEmpty(path))
+                {
+                    continue;
+                }
+
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab != null && PrefabUtility.GetPrefabAssetType(prefab) != PrefabAssetType.NotAPrefab)
+                {
+                    if (seen.Add(prefab))
+                    {
+                        _targets.Add(prefab);
+                    }
+                    continue;
+                }
+
+                var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+                if (mesh != null)
+                {
+                    if (seen.Add(mesh))
+                    {
+                        _targets.Add(mesh);
                     }
                 }
             }
         }
 
+        private static bool IsSupportedAsset(UnityEngine.Object obj)
+        {
+            if (obj is GameObject go)
+            {
+                return PrefabUtility.GetPrefabAssetType(go) != PrefabAssetType.NotAPrefab;
+            }
+
+            if (obj is Mesh)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private void OnGUI()
         {
             EditorGUILayout.LabelField("Terrain Detail Conversion", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox("Select one or more prefab assets that contain static meshes (FBX, GLB, etc.), then convert them into terrain detail meshes, materials, and prefabs.", MessageType.Info);
+            EditorGUILayout.HelpBox("Select one or more assets that contain static meshes (FBX, GLB, prefabs, or individual mesh assets), then convert them into terrain detail meshes, materials, and prefabs.", MessageType.Info);
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
@@ -140,6 +178,7 @@ namespace Plant.TerrainDetails.Editor
             {
                 EditorGUILayout.LabelField("Conversion Options", EditorStyles.boldLabel);
                 _detailShader = (Shader)EditorGUILayout.ObjectField("Detail Shader", _detailShader, typeof(Shader), false);
+                _animationPreset = (DetailAnimationPreset)EditorGUILayout.EnumPopup("Animation Preset", _animationPreset);
                 _mergeLods = EditorGUILayout.ToggleLeft("Collapse LODGroup to first LOD", _mergeLods);
                 _inheritMaterialProperties = EditorGUILayout.ToggleLeft("Copy base texture/color from source material", _inheritMaterialProperties);
 
@@ -164,7 +203,7 @@ namespace Plant.TerrainDetails.Editor
                     _scroll = EditorGUILayout.BeginScrollView(_scroll, GUILayout.MinHeight(80));
                     foreach (var target in _targets)
                     {
-                        EditorGUILayout.ObjectField(target, typeof(GameObject), false);
+                        EditorGUILayout.ObjectField(target, typeof(UnityEngine.Object), false);
                     }
                     EditorGUILayout.EndScrollView();
                 }
@@ -205,6 +244,7 @@ namespace Plant.TerrainDetails.Editor
                 GenerateMesh = _generateMesh,
                 GenerateMaterial = _generateMaterial,
                 GeneratePrefab = _generatePrefab,
+                AnimationPreset = _animationPreset,
                 Verbose = _logVerbose
             };
 
@@ -264,6 +304,10 @@ namespace Plant.TerrainDetails.Editor
                 _mergeLods = state.mergeLods;
                 _inheritMaterialProperties = state.inheritMaterialProperties;
                 _logVerbose = state.logVerbose;
+                if (!string.IsNullOrEmpty(state.animationPreset) && Enum.TryParse(state.animationPreset, out DetailAnimationPreset preset))
+                {
+                    _animationPreset = preset;
+                }
 
                 if (!string.IsNullOrEmpty(state.shaderPath))
                 {
@@ -294,7 +338,8 @@ namespace Plant.TerrainDetails.Editor
                     generatePrefab = _generatePrefab,
                     mergeLods = _mergeLods,
                     inheritMaterialProperties = _inheritMaterialProperties,
-                    logVerbose = _logVerbose
+                    logVerbose = _logVerbose,
+                    animationPreset = _animationPreset.ToString()
                 };
 
                 var json = JsonUtility.ToJson(state, false);
@@ -340,6 +385,7 @@ namespace Plant.TerrainDetails.Editor
             public bool GenerateMesh = true;
             public bool GenerateMaterial = true;
             public bool GeneratePrefab = true;
+            public DetailAnimationPreset AnimationPreset = DetailAnimationPreset.UnderwaterSeaPlant;
             public bool Verbose;
         }
 
@@ -385,19 +431,6 @@ namespace Plant.TerrainDetails.Editor
         internal static bool TryGenerate(UnityEngine.Object target, Options options, out Result result)
         {
             result = null;
-            var prefab = ResolvePrefabAsset(target);
-            if (prefab == null)
-            {
-                Debug.LogWarning($"[TerrainDetailGenerator] Unsupported asset type '{target}'. Select prefab assets or model roots.");
-                return false;
-            }
-
-            var prefabPath = AssetDatabase.GetAssetPath(prefab);
-            if (string.IsNullOrEmpty(prefabPath))
-            {
-                Debug.LogWarning($"[TerrainDetailGenerator] Could not resolve asset path for '{prefab.name}'.");
-                return false;
-            }
 
             if (options.DetailShader == null)
             {
@@ -405,80 +438,145 @@ namespace Plant.TerrainDetails.Editor
                 return false;
             }
 
-            var prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
-            if (prefabRoot == null)
+            using var context = SourceContext.Create(target);
+            if (context == null || context.Root == null)
             {
-                Debug.LogWarning($"[TerrainDetailGenerator] Failed to load prefab contents for '{prefab.name}'.");
+                Debug.LogWarning($"[TerrainDetailGenerator] Unsupported asset type '{target}'. Select prefabs, FBX/GLB model assets, or mesh assets.");
                 return false;
             }
 
-            try
+            var renderers = CollectRenderers(context.Root, options.CollapseLods);
+            if (renderers.Count == 0)
             {
-                var renderers = CollectRenderers(prefabRoot, options.CollapseLods);
-                if (renderers.Count == 0)
+                Debug.LogWarning($"[TerrainDetailGenerator] No mesh renderers found in '{context.SourceName}'.");
+                return false;
+            }
+
+            var meshFilters = new List<MeshFilter>();
+            foreach (var renderer in renderers)
+            {
+                if (renderer == null)
                 {
-                    Debug.LogWarning($"[TerrainDetailGenerator] No mesh renderers found in '{prefab.name}'.");
-                    return false;
+                    continue;
                 }
 
-                var meshFilters = new List<MeshFilter>();
-                foreach (var renderer in renderers)
+                if (renderer.TryGetComponent<MeshFilter>(out var filter) && filter.sharedMesh != null)
                 {
-                    if (renderer.TryGetComponent<MeshFilter>(out var filter) && filter.sharedMesh != null)
+                    meshFilters.Add(filter);
+                }
+            }
+
+            if (meshFilters.Count == 0)
+            {
+                Debug.LogWarning($"[TerrainDetailGenerator] No MeshFilter components with valid meshes were found in '{context.SourceName}'.");
+                return false;
+            }
+
+            Mesh detailMesh = null;
+            string meshAssetPath = null;
+            if (options.GenerateMesh)
+            {
+                detailMesh = BuildCombinedMesh(context.SourceName, meshFilters);
+                meshAssetPath = WriteMeshAsset(detailMesh, options.OutputRoot);
+            }
+            else
+            {
+                detailMesh = meshFilters[0].sharedMesh;
+            }
+
+            Material detailMaterial = null;
+            string materialAssetPath = null;
+            if (options.GenerateMaterial)
+            {
+                detailMaterial = CreateMaterial(context.SourceName, options.DetailShader, renderers, options.CopyMaterialProperties, options.AnimationPreset);
+                materialAssetPath = WriteMaterialAsset(detailMaterial, options.OutputRoot);
+            }
+            else
+            {
+                detailMaterial = renderers.SelectMany(r => r.sharedMaterials ?? Array.Empty<Material>()).FirstOrDefault(m => m != null);
+            }
+
+            string prefabAssetPath = null;
+            if (options.GeneratePrefab)
+            {
+                prefabAssetPath = CreateDetailPrefab(context.SourceName, detailMesh, detailMaterial, options.OutputRoot);
+            }
+
+            result = new Result
+            {
+                SourceName = context.SourceName,
+                MeshPath = meshAssetPath,
+                MaterialPath = materialAssetPath,
+                PrefabPath = prefabAssetPath
+            };
+
+            return true;
+        }
+
+        private sealed class SourceContext : IDisposable
+        {
+            public GameObject Root { get; }
+            public string SourceName { get; }
+            public string AssetPath { get; }
+
+            private readonly Action _cleanup;
+
+            private SourceContext(GameObject root, string sourceName, string assetPath, Action cleanup)
+            {
+                Root = root;
+                SourceName = sourceName;
+                AssetPath = assetPath;
+                _cleanup = cleanup;
+            }
+
+            public static SourceContext Create(UnityEngine.Object target)
+            {
+                if (target == null)
+                {
+                    return null;
+                }
+
+                var assetPath = AssetDatabase.GetAssetPath(target);
+
+                if (target is Mesh mesh)
+                {
+                    var temp = new GameObject(mesh.name + "_Source")
                     {
-                        meshFilters.Add(filter);
+                        hideFlags = HideFlags.HideAndDontSave
+                    };
+                    var filter = temp.AddComponent<MeshFilter>();
+                    filter.sharedMesh = mesh;
+                    temp.AddComponent<MeshRenderer>();
+                    return new SourceContext(temp, mesh.name, assetPath, () => UnityEngine.Object.DestroyImmediate(temp));
+                }
+
+                var prefab = ResolvePrefabAsset(target);
+                if (prefab != null)
+                {
+                    var path = AssetDatabase.GetAssetPath(prefab);
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        var prefabRoot = PrefabUtility.LoadPrefabContents(path);
+                        if (prefabRoot != null)
+                        {
+                            return new SourceContext(prefabRoot, prefab.name, path, () => PrefabUtility.UnloadPrefabContents(prefabRoot));
+                        }
                     }
                 }
 
-                if (meshFilters.Count == 0)
+                if (target is GameObject go)
                 {
-                    Debug.LogWarning($"[TerrainDetailGenerator] No MeshFilter components with valid meshes were found in '{prefab.name}'.");
-                    return false;
+                    var clone = UnityEngine.Object.Instantiate(go);
+                    clone.hideFlags = HideFlags.HideAndDontSave;
+                    return new SourceContext(clone, go.name, assetPath, () => UnityEngine.Object.DestroyImmediate(clone));
                 }
 
-                Mesh detailMesh = null;
-                string meshAssetPath = null;
-                if (options.GenerateMesh)
-                {
-                    detailMesh = BuildCombinedMesh(prefab.name, meshFilters);
-                    meshAssetPath = WriteMeshAsset(detailMesh, options.OutputRoot);
-                }
-                else
-                {
-                    detailMesh = meshFilters[0].sharedMesh;
-                }
-
-                Material detailMaterial = null;
-                string materialAssetPath = null;
-                if (options.GenerateMaterial)
-                {
-                    detailMaterial = CreateMaterial(prefab.name, options.DetailShader, renderers, options.CopyMaterialProperties);
-                    materialAssetPath = WriteMaterialAsset(detailMaterial, options.OutputRoot);
-                }
-                else
-                {
-                    detailMaterial = renderers.SelectMany(r => r.sharedMaterials.Where(m => m != null)).FirstOrDefault();
-                }
-
-                string prefabAssetPath = null;
-                if (options.GeneratePrefab)
-                {
-                    prefabAssetPath = CreateDetailPrefab(prefab.name, detailMesh, detailMaterial, options.OutputRoot);
-                }
-
-                result = new Result
-                {
-                    SourceName = prefab.name,
-                    MeshPath = meshAssetPath,
-                    MaterialPath = materialAssetPath,
-                    PrefabPath = prefabAssetPath
-                };
-
-                return true;
+                return null;
             }
-            finally
+
+            public void Dispose()
             {
-                PrefabUtility.UnloadPrefabContents(prefabRoot);
+                _cleanup?.Invoke();
             }
         }
 
@@ -551,7 +649,7 @@ namespace Plant.TerrainDetails.Editor
             return assetPath;
         }
 
-        private static Material CreateMaterial(string prefabName, Shader shader, IEnumerable<Renderer> renderers, bool copyProperties)
+        private static Material CreateMaterial(string prefabName, Shader shader, IEnumerable<Renderer> renderers, bool copyProperties, DetailAnimationPreset preset)
         {
             var material = new Material(shader)
             {
@@ -580,6 +678,7 @@ namespace Plant.TerrainDetails.Editor
                 material.SetFloat("_Cutoff", sourceMaterial.GetFloat("_Cutoff"));
             }
 
+            ApplyAnimationPreset(material, preset);
             return material;
         }
 
@@ -700,6 +799,51 @@ namespace Plant.TerrainDetails.Editor
                 }
 
                 return;
+            }
+        }
+
+        private static void ApplyAnimationPreset(Material material, DetailAnimationPreset preset)
+        {
+            if (material == null)
+            {
+                return;
+            }
+
+            switch (preset)
+            {
+                case DetailAnimationPreset.Grass:
+                    SetFloatIfExists(material, "_SwayAmplitude", 0.045f);
+                    SetFloatIfExists(material, "_SwayVertical", 0.008f);
+                    SetFloatIfExists(material, "_SwaySpeed", 1.6f);
+                    SetFloatIfExists(material, "_SwayHeightScale", 0.9f);
+                    SetFloatIfExists(material, "_SwayPhaseJitter", 0.6f);
+                    SetFloatIfExists(material, "_SwayNoiseStrength", 0.2f);
+                    SetFloatIfExists(material, "_SwayNoiseScale", 1.2f);
+                    SetFloatIfExists(material, "_GroundSink", 0.01f);
+                    SetFloatIfExists(material, "_GroundSlopeSink", 0.04f);
+                    SetFloatIfExists(material, "_GroundSinkHeightScale", 1.8f);
+                    break;
+
+                default:
+                    SetFloatIfExists(material, "_SwayAmplitude", 0.12f);
+                    SetFloatIfExists(material, "_SwayVertical", 0.02f);
+                    SetFloatIfExists(material, "_SwaySpeed", 0.8f);
+                    SetFloatIfExists(material, "_SwayHeightScale", 1.4f);
+                    SetFloatIfExists(material, "_SwayPhaseJitter", 1.2f);
+                    SetFloatIfExists(material, "_SwayNoiseStrength", 0.35f);
+                    SetFloatIfExists(material, "_SwayNoiseScale", 0.6f);
+                    SetFloatIfExists(material, "_GroundSink", 0.04f);
+                    SetFloatIfExists(material, "_GroundSlopeSink", 0.12f);
+                    SetFloatIfExists(material, "_GroundSinkHeightScale", 3.5f);
+                    break;
+            }
+        }
+
+        private static void SetFloatIfExists(Material material, string propertyName, float value)
+        {
+            if (material != null && material.HasProperty(propertyName))
+            {
+                material.SetFloat(propertyName, value);
             }
         }
     }

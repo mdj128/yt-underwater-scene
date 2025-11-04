@@ -66,7 +66,7 @@ Shader "Plant/Terrain/PlantDetail"
 
             #pragma multi_compile_instancing
 
-            #include "Packages/com.plant.detailtoolkit/Runtime/Shaders/PlantTerrainDetailPasses.hlsl"
+            #include "PlantTerrainDetailPasses.hlsl"
             ENDHLSL
         }
 
@@ -87,7 +87,7 @@ Shader "Plant/Terrain/PlantDetail"
             #pragma multi_compile_vertex _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_vertex _ _MAIN_LIGHT_SHADOWS
 
-            #include "Packages/com.plant.detailtoolkit/Runtime/Shaders/PlantTerrainDetailPasses.hlsl"
+            #include "PlantTerrainDetailPasses.hlsl"
             ENDHLSL
         }
 
@@ -105,7 +105,7 @@ Shader "Plant/Terrain/PlantDetail"
             #pragma fragment DepthOnlyFragment
             #pragma multi_compile_instancing
 
-            #include "Packages/com.plant.detailtoolkit/Runtime/Shaders/PlantTerrainDetailPasses.hlsl"
+            #include "PlantTerrainDetailPasses.hlsl"
             ENDHLSL
         }
     }

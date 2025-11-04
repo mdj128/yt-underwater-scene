@@ -100,14 +100,15 @@ float3 ApplyPlantSway(float3 positionOS, float instancePhase, float heightMask)
         }
         windDirWS = normalize(windDirWS);
 
-        float3 windDirOS3 = mul((float3x3)unity_WorldToObject, windDirWS);
-        float2 windDirOS = windDirOS3.xz;
-        float lenOS = dot(windDirOS, windDirOS);
+        float3x3 objectToWorld = (float3x3)UNITY_MATRIX_M;
+        float3x3 worldToObject = transpose(objectToWorld);
+        float3 windDirOS3 = mul(worldToObject, windDirWS);
+        float lenOS = dot(windDirOS3.xz, windDirOS3.xz);
         if (lenOS < 1e-5f)
         {
-            windDirOS = float2(1.0f, 0.0f);
+            windDirOS3 = float3(1.0f, 0.0f, 0.0f);
         }
-        windDirOS = normalize(windDirOS);
+        float2 windDirOS = normalize(windDirOS3.xz);
 
         float gust = sin(time * 0.45 + instancePhase * 0.7) * _WindGustStrength;
         float swayDirectional = (swayCombined + gust) * saturate(_WindStrength);

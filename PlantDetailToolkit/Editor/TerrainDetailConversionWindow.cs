@@ -644,7 +644,39 @@ namespace Plant.TerrainDetails.Editor
             detailMesh.CombineMeshes(combineInstances, mergeSubMeshes: true, useMatrices: true, hasLightmapData: false);
             detailMesh.RecalculateBounds();
             MeshUtility.Optimize(detailMesh);
+            ApplyVertexSwayWeights(detailMesh);
             return detailMesh;
+        }
+
+        private static void ApplyVertexSwayWeights(Mesh mesh)
+        {
+            if (mesh == null)
+            {
+                return;
+            }
+
+            var vertices = mesh.vertices;
+            if (vertices == null || vertices.Length == 0)
+            {
+                return;
+            }
+
+            var bounds = mesh.bounds;
+            float minY = bounds.min.y;
+            float height = Mathf.Max(bounds.size.y, 0.0001f);
+            float heightInv = 1f / height;
+
+            var colors = new Color32[vertices.Length];
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                var v = vertices[i];
+                float height01 = Mathf.Clamp01((v.y - minY) * heightInv);
+                height01 = Mathf.Pow(height01, 1.2f);
+                byte weightByte = (byte)Mathf.Clamp(Mathf.RoundToInt(height01 * 255f), 0, 255);
+                colors[i] = new Color32(255, 255, 255, weightByte);
+            }
+
+            mesh.colors32 = colors;
         }
 
         private static string WriteMeshAsset(Mesh mesh, string outputRoot)

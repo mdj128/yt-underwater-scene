@@ -19,7 +19,7 @@ Replace the repository and branch information as needed.
 
 ## Features
 
-- Combines the first LOD (or all renderers) of imported prefabs into a single mesh asset.
+- Combines the first LOD (or all renderers) of imported prefabs into a single mesh asset and automatically paints vertex weights so only leaf tips sway.
 - Generates URP detail shader materials with configurable sway animation and alpha clipping.
 - Creates ready-to-paint prefab assets, leaving source prefabs untouched.
 - Copies diffuse textures and colors from the source material when possible.

@@ -164,6 +164,7 @@ Varyings TerrainLitVertexSway(Attributes input)
     float3 instanceOrigin = GetInstanceOriginWS();
     float phaseNoise = Hash(instanceOrigin);
     float instancePhase = (phaseNoise - 0.5f) * _SwayPhaseJitter * 6.2831853f;
+    half tipWeight = saturate(input.Color.a);
 
     float3 positionOS = input.PositionOS.xyz;
 
@@ -172,14 +173,16 @@ Varyings TerrainLitVertexSway(Attributes input)
     float sinkAmount = (_GroundSink + radial * _GroundSlopeSink) * baseMask;
     positionOS.y -= sinkAmount;
 
-    float heightMask = saturate(positionOS.y * _SwayHeightScale);
+    float heightMask = max(tipWeight, saturate(positionOS.y * _SwayHeightScale));
     positionOS = ApplyPlantSway(positionOS, instancePhase, heightMask);
 
     output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
     OUTPUT_LIGHTMAP_UV(input.UV1, unity_LightmapST, output.staticLightmapUV);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
-    output.Color = input.Color * _Color;
+    half3 colorRGB = input.Color.rgb * _Color.rgb;
+    half colorA = _Color.a;
+    output.Color = half4(colorRGB, colorA);
     output.PositionCS = vertexInput.positionCS;
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)

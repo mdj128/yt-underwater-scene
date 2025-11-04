@@ -16,6 +16,9 @@ Shader "Plant/Terrain/PlantDetail"
         _GroundSink("Base Ground Sink", Range(0, 0.3)) = 0.04
         _GroundSlopeSink("Slope Sink Scale", Range(0, 0.6)) = 0.12
         _GroundSinkHeightScale("Sink Height Falloff", Range(0.1, 8)) = 3.5
+        _WindDirection("Wind Direction (XZ)", Vector) = (1, 0, 0, 0)
+        _WindStrength("Wind Strength", Range(0, 1)) = 0
+        _WindGustStrength("Wind Gust Strength", Range(0, 1)) = 0.2
     }
 
     SubShader

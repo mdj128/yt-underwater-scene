@@ -25,6 +25,9 @@ CBUFFER_START(UnityPerMaterial)
     float _GroundSink;
     float _GroundSlopeSink;
     float _GroundSinkHeightScale;
+    float2 _WindDirection;
+    float _WindStrength;
+    float _WindGustStrength;
 CBUFFER_END
 
 struct Attributes
@@ -81,8 +84,33 @@ float3 ApplyPlantSway(float3 positionOS, float instancePhase, float heightMask)
     float swayOrtho = (swaySecondary + swayNoise * 0.5) * _SwayAmplitude;
     float vertical = sin(time * 0.63 + instancePhase * 1.13) * _SwayVertical;
 
-    positionOS.x += swayCombined * heightMask;
-    positionOS.z += swayOrtho * heightMask;
+    float useDirectional = step(0.001f, _WindStrength);
+
+    float3 originalPos = positionOS;
+    originalPos.x += swayCombined * heightMask;
+    originalPos.z += swayOrtho * heightMask;
+
+    if (useDirectional > 0.5f)
+    {
+        float2 windDir = normalize(_WindDirection);
+        float lenCheck = dot(windDir, windDir);
+        if (lenCheck < 1e-4f)
+        {
+            windDir = float2(1, 0);
+        }
+
+        float gust = sin(time * 0.45 + instancePhase * 0.7) * _WindGustStrength;
+        float swayDirectional = (swayCombined + gust) * saturate(_WindStrength);
+        float2 perpDir = float2(-windDir.y, windDir.x);
+
+        positionOS.xz += windDir * swayDirectional * heightMask;
+        positionOS.xz += perpDir * swayOrtho * heightMask * 0.35f;
+    }
+    else
+    {
+        positionOS = originalPos;
+    }
+
     positionOS.y += vertical * heightMask;
 
     return positionOS;

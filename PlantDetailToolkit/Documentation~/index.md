@@ -7,6 +7,7 @@ The Terrain Detail Converter window is available under **Tools ▸ Terrain Detai
 - **Detail Shader** – defaults to the package's `Plant/Terrain/PlantDetail` shader. Assign a custom shader if desired.
 - **Animation Preset** – choose between underwater sway and lightweight grass motion presets. Values can be adjusted directly on the generated material afterwards.
 - The converter writes sway weights into vertex colors (alpha) so only the upper portions of each mesh bend with the wind. Leave **Create combined mesh asset** enabled to generate these weights.
+- Grass preset materials also receive wind direction and strength settings so neighboring instances lean together by default. Tune `_WindDirection`, `_WindStrength`, and `_WindGustStrength` on the generated material to taste.
 - **Collapse LODGroup to first LOD** – when enabled, only meshes from the first LOD in any LODGroup are combined. Disable to include every renderer in the prefab.
 - **Copy base texture/color from source material** – copies the main texture and tint color from the source material when creating the detail material.
 - **Create combined mesh asset** – generates a new combined mesh asset for the prefab.

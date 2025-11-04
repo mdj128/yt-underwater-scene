@@ -23,7 +23,7 @@ Replace the repository and branch information as needed.
 - Generates URP detail shader materials with configurable sway animation and alpha clipping.
 - Creates ready-to-paint prefab assets, leaving source prefabs untouched.
 - Copies diffuse textures and colors from the source material when possible.
-- Provides animation presets for underwater plants or above-ground grass sway.
+- Provides animation presets for underwater plants or above-ground grass sway, including directional wind drift for grass.
 
 ## Usage
 

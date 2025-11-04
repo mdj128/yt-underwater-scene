@@ -899,6 +899,9 @@ namespace Plant.TerrainDetails.Editor
                     SetFloatIfExists(material, "_GroundSink", 0.01f);
                     SetFloatIfExists(material, "_GroundSlopeSink", 0.04f);
                     SetFloatIfExists(material, "_GroundSinkHeightScale", 1.8f);
+                    SetFloatIfExists(material, "_WindStrength", 0.6f);
+                    SetFloatIfExists(material, "_WindGustStrength", 0.35f);
+                    SetVectorIfExists(material, "_WindDirection", new Vector4(0.7f, 0.2f, 0f, 0f));
                     break;
 
                 default:
@@ -912,6 +915,9 @@ namespace Plant.TerrainDetails.Editor
                     SetFloatIfExists(material, "_GroundSink", 0.04f);
                     SetFloatIfExists(material, "_GroundSlopeSink", 0.12f);
                     SetFloatIfExists(material, "_GroundSinkHeightScale", 3.5f);
+                    SetFloatIfExists(material, "_WindStrength", 0f);
+                    SetFloatIfExists(material, "_WindGustStrength", 0f);
+                    SetVectorIfExists(material, "_WindDirection", Vector4.zero);
                     break;
             }
         }
@@ -921,6 +927,14 @@ namespace Plant.TerrainDetails.Editor
             if (material != null && material.HasProperty(propertyName))
             {
                 material.SetFloat(propertyName, value);
+            }
+        }
+
+        private static void SetVectorIfExists(Material material, string propertyName, Vector4 value)
+        {
+            if (material != null && material.HasProperty(propertyName))
+            {
+                material.SetVector(propertyName, value);
             }
         }
     }

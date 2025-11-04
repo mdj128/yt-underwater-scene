@@ -550,25 +550,32 @@ namespace Plant.TerrainDetails.Editor
                     return new SourceContext(temp, mesh.name, assetPath, () => UnityEngine.Object.DestroyImmediate(temp));
                 }
 
-                var prefab = ResolvePrefabAsset(target);
-                if (prefab != null)
+                var goAsset = GetGameObjectAsset(target, assetPath);
+                if (goAsset != null)
                 {
-                    var path = AssetDatabase.GetAssetPath(prefab);
-                    if (!string.IsNullOrEmpty(path))
+                    var prefabType = PrefabUtility.GetPrefabAssetType(goAsset);
+                    if (prefabType == PrefabAssetType.Regular || prefabType == PrefabAssetType.Variant)
                     {
+                        var path = AssetDatabase.GetAssetPath(goAsset);
                         var prefabRoot = PrefabUtility.LoadPrefabContents(path);
                         if (prefabRoot != null)
                         {
-                            return new SourceContext(prefabRoot, prefab.name, path, () => PrefabUtility.UnloadPrefabContents(prefabRoot));
+                            return new SourceContext(prefabRoot, goAsset.name, path, () => PrefabUtility.UnloadPrefabContents(prefabRoot));
                         }
+                    }
+                    else
+                    {
+                        var clone = UnityEngine.Object.Instantiate(goAsset);
+                        clone.hideFlags = HideFlags.HideAndDontSave;
+                        return new SourceContext(clone, goAsset.name, assetPath, () => UnityEngine.Object.DestroyImmediate(clone));
                     }
                 }
 
-                if (target is GameObject go)
+                if (target is GameObject goInstance)
                 {
-                    var clone = UnityEngine.Object.Instantiate(go);
+                    var clone = UnityEngine.Object.Instantiate(goInstance);
                     clone.hideFlags = HideFlags.HideAndDontSave;
-                    return new SourceContext(clone, go.name, assetPath, () => UnityEngine.Object.DestroyImmediate(clone));
+                    return new SourceContext(clone, goInstance.name, assetPath, () => UnityEngine.Object.DestroyImmediate(clone));
                 }
 
                 return null;
@@ -580,17 +587,16 @@ namespace Plant.TerrainDetails.Editor
             }
         }
 
-        private static GameObject ResolvePrefabAsset(UnityEngine.Object target)
+        private static GameObject GetGameObjectAsset(UnityEngine.Object target, string assetPath)
         {
             switch (target)
             {
-                case GameObject go when PrefabUtility.GetPrefabAssetType(go) != PrefabAssetType.NotAPrefab:
+                case GameObject go:
                     return go;
                 default:
-                    var path = AssetDatabase.GetAssetPath(target);
-                    if (!string.IsNullOrEmpty(path))
+                    if (!string.IsNullOrEmpty(assetPath))
                     {
-                        return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                        return AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
                     }
                     break;
             }

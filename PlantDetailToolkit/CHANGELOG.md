@@ -10,6 +10,7 @@
 - Removed extraneous documentation folder meta file to silence Package Manager warnings.
 - Grass wind sway synchronizes phase when wind strength is high so large patches move together.
 - Added gust offset and reduced sync clamp so grass still exhibits rippling motion while following the main wind direction.
+- Added optional terrain detail prototype registration with a single checkbox in the conversion window.
 
 ## [0.1.0] - 2025-11-04
 - Initial package creation including the terrain detail conversion editor window and URP shader assets.

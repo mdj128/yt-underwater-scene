@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Plant.TerrainDetails.Editor
@@ -33,6 +34,7 @@ namespace Plant.TerrainDetails.Editor
             public bool inheritMaterialProperties;
             public bool logVerbose;
             public string animationPreset;
+            public bool registerOnTerrain;
         }
 
         [SerializeField] private Shader _detailShader;
@@ -44,6 +46,8 @@ namespace Plant.TerrainDetails.Editor
         [SerializeField] private bool _inheritMaterialProperties = true;
         [SerializeField] private bool _logVerbose = false;
         [SerializeField] private DetailAnimationPreset _animationPreset = DetailAnimationPreset.UnderwaterSeaPlant;
+        [SerializeField] private bool _registerOnTerrain;
+        [SerializeField] private Terrain _registerTerrainTarget;
 
         private readonly List<UnityEngine.Object> _targets = new();
         private Vector2 _scroll;
@@ -189,6 +193,17 @@ namespace Plant.TerrainDetails.Editor
 
                 EditorGUILayout.Space(4);
                 _logVerbose = EditorGUILayout.ToggleLeft("Log verbose output", _logVerbose);
+                _registerOnTerrain = EditorGUILayout.ToggleLeft("Register detail prefabs on a terrain", _registerOnTerrain);
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUI.BeginDisabledGroup(!_registerOnTerrain);
+                    _registerTerrainTarget = (Terrain)EditorGUILayout.ObjectField("Target Terrain", _registerTerrainTarget, typeof(Terrain), true);
+                    if (_registerOnTerrain && _registerTerrainTarget == null)
+                    {
+                        EditorGUILayout.HelpBox("Leave empty to use the active terrain.", MessageType.Info);
+                    }
+                    EditorGUI.EndDisabledGroup();
+                }
             }
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
@@ -235,6 +250,10 @@ namespace Plant.TerrainDetails.Editor
                 return;
             }
 
+            var terrainTarget = _registerOnTerrain
+                ? (_registerTerrainTarget != null ? _registerTerrainTarget : Terrain.activeTerrain)
+                : null;
+
             var options = new TerrainDetailGenerator.Options
             {
                 OutputRoot = _outputRoot,
@@ -245,8 +264,15 @@ namespace Plant.TerrainDetails.Editor
                 GenerateMaterial = _generateMaterial,
                 GeneratePrefab = _generatePrefab,
                 AnimationPreset = _animationPreset,
-                Verbose = _logVerbose
+                Verbose = _logVerbose,
+                RegisterOnTerrain = _registerOnTerrain,
+                TerrainTarget = terrainTarget
             };
+
+            if (options.RegisterOnTerrain && options.TerrainTarget == null)
+            {
+                Debug.LogWarning("[TerrainDetailConverter] Terrain registration enabled but no terrain was found. Details will not be registered.");
+            }
 
             var results = new List<TerrainDetailGenerator.Result>();
             foreach (var target in _targets)
@@ -259,6 +285,10 @@ namespace Plant.TerrainDetails.Editor
                 if (TerrainDetailGenerator.TryGenerate(target, options, out var result))
                 {
                     results.Add(result);
+                    if (options.RegisterOnTerrain && options.TerrainTarget != null && !string.IsNullOrEmpty(result.PrefabPath))
+                    {
+                        TerrainDetailGenerator.RegisterDetailPrototype(options.TerrainTarget, result.PrefabPath, options.Verbose);
+                    }
                 }
             }
 
@@ -308,6 +338,7 @@ namespace Plant.TerrainDetails.Editor
                 {
                     _animationPreset = preset;
                 }
+                _registerOnTerrain = state.registerOnTerrain;
 
                 if (!string.IsNullOrEmpty(state.shaderPath))
                 {
@@ -339,7 +370,8 @@ namespace Plant.TerrainDetails.Editor
                     mergeLods = _mergeLods,
                     inheritMaterialProperties = _inheritMaterialProperties,
                     logVerbose = _logVerbose,
-                    animationPreset = _animationPreset.ToString()
+                    animationPreset = _animationPreset.ToString(),
+                    registerOnTerrain = _registerOnTerrain
                 };
 
                 var json = JsonUtility.ToJson(state, false);
@@ -387,6 +419,8 @@ namespace Plant.TerrainDetails.Editor
             public bool GeneratePrefab = true;
             public DetailAnimationPreset AnimationPreset = DetailAnimationPreset.UnderwaterSeaPlant;
             public bool Verbose;
+            public bool RegisterOnTerrain;
+            public Terrain TerrainTarget;
         }
 
         internal sealed class Result
@@ -935,6 +969,68 @@ namespace Plant.TerrainDetails.Editor
             if (material != null && material.HasProperty(propertyName))
             {
                 material.SetVector(propertyName, value);
+            }
+        }
+
+        internal static void RegisterDetailPrototype(Terrain terrain, string prefabAssetPath, bool verbose)
+        {
+            if (terrain == null || terrain.terrainData == null || string.IsNullOrEmpty(prefabAssetPath))
+            {
+                if (verbose)
+                {
+                    Debug.LogWarning("[TerrainDetailGenerator] Unable to register detail prototype. Terrain or prefab path is invalid.");
+                }
+                return;
+            }
+
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabAssetPath);
+            if (prefab == null)
+            {
+                if (verbose)
+                {
+                    Debug.LogWarning($"[TerrainDetailGenerator] Could not load prefab at '{prefabAssetPath}'.");
+                }
+                return;
+            }
+
+            var data = terrain.terrainData;
+            var prototypes = data.detailPrototypes ?? Array.Empty<DetailPrototype>();
+            foreach (var proto in prototypes)
+            {
+                if (proto != null && proto.usePrototypeMesh && proto.prototype == prefab)
+                {
+                    if (verbose)
+                    {
+                        Debug.Log($"[TerrainDetailGenerator] Terrain '{terrain.name}' already contains prototype '{prefab.name}'.");
+                    }
+                    return;
+                }
+            }
+
+            var newPrototype = new DetailPrototype
+            {
+                usePrototypeMesh = true,
+                prototype = prefab,
+                renderMode = DetailRenderMode.VertexLit,
+                minHeight = 0.9f,
+                maxHeight = 1.3f,
+                minWidth = 0.9f,
+                maxWidth = 1.3f,
+                noiseSpread = 0.25f,
+                healthyColor = Color.white,
+                dryColor = Color.white
+            };
+
+            var updated = new List<DetailPrototype>(prototypes) { newPrototype };
+
+            Undo.RecordObject(data, "Add Terrain Detail Prototype");
+            data.detailPrototypes = updated.ToArray();
+            EditorUtility.SetDirty(data);
+            EditorSceneManager.MarkSceneDirty(terrain.gameObject.scene);
+
+            if (verbose)
+            {
+                Debug.Log($"[TerrainDetailGenerator] Added detail prototype '{prefab.name}' to terrain '{terrain.name}'.");
             }
         }
     }

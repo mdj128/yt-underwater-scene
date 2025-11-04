@@ -24,15 +24,16 @@ Replace the repository and branch information as needed.
 - Creates ready-to-paint prefab assets, leaving source prefabs untouched.
 - Copies diffuse textures and colors from the source material when possible.
 - Provides animation presets for underwater plants or above-ground grass sway, including directional wind drift for grass.
+- Optional terrain integration: automatically registers generated prefabs as mesh detail layers on a chosen terrain.
 
 ## Usage
 
 1. Select one or more assets in the Project window (FBX/GLB imports, prefabs, or individual mesh assets).
 2. Open **Tools ▸ Terrain Details ▸ Convert Mesh To Terrain Detail**.
 3. Pick an output folder inside `Assets/` for the generated meshes, materials, and prefabs.
-4. (Optional) Assign a different shader, pick an animation preset, or tweak conversion options.
+4. (Optional) Assign a different shader, pick an animation preset, enable terrain registration, or tweak conversion options.
 5. Click **Convert Selected**. Mesh, material, and prefab assets will be generated in subfolders under the chosen output root.
-6. Assign the generated prefabs to a terrain detail prototype and paint them using Unity's terrain detail tools.
+6. (Optional) When terrain registration is enabled, the selected terrain receives matching mesh detail layers automatically. Otherwise, assign the generated prefabs to a terrain detail prototype and paint them using Unity's terrain detail tools.
 
 ## Folders Created
 

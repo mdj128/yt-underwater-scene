@@ -12,7 +12,7 @@ The Plant Terrain Detail Toolkit wraps the plant conversion scripts and shaders 
 Install from Git by adding the repository URL plus the package path in the Unity Package Manager (`Window > Package Manager > Add package from git URL...`). For example:
 
 ```
-https://github.com/your-org/your-repo.git?path=PlantDetailToolkit
+https://github.com/mdj128/yt-underwater-scene.git?path=PlantDetailToolkit
 ```
 
 Replace the repository and branch information as needed.

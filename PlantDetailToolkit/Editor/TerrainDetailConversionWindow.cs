@@ -708,7 +708,7 @@ namespace Plant.TerrainDetails.Editor
                 return material;
             }
 
-            CopyTextureProperty(sourceMaterial, material, "_BaseMap", "_MainTex");
+            CopyTextureProperty(sourceMaterial, material, "_BaseMap", "_BaseColorMap", "_MainTex", "_BaseColorTex", "_DiffuseMap");
             CopyColorProperty(sourceMaterial, material, "_BaseColor", "_Color");
 
             if (sourceMaterial.HasProperty("_Cutoff") && material.HasProperty("_Cutoff"))
@@ -785,6 +785,22 @@ namespace Plant.TerrainDetails.Editor
 
         private static void CopyTextureProperty(Material source, Material target, params string[] propertyNames)
         {
+            if (TryCopyTextureFromProperties(source, target, propertyNames))
+            {
+                return;
+            }
+
+            var mainTex = source.mainTexture;
+            if (mainTex != null)
+            {
+                var scale = source.HasProperty("_MainTex") ? source.GetTextureScale("_MainTex") : Vector2.one;
+                var offset = source.HasProperty("_MainTex") ? source.GetTextureOffset("_MainTex") : Vector2.zero;
+                SetTextureOnTarget(target, mainTex, scale, offset);
+            }
+        }
+
+        private static bool TryCopyTextureFromProperties(Material source, Material target, string[] propertyNames)
+        {
             foreach (var property in propertyNames)
             {
                 if (!source.HasProperty(property))
@@ -798,25 +814,42 @@ namespace Plant.TerrainDetails.Editor
                     continue;
                 }
 
-                if (target.HasProperty("_MainTex"))
-                {
-                    target.SetTexture("_MainTex", texture);
-                    target.SetTextureScale("_MainTex", source.GetTextureScale(property));
-                    target.SetTextureOffset("_MainTex", source.GetTextureOffset(property));
-                }
+                SetTextureOnTarget(target, texture, source.GetTextureScale(property), source.GetTextureOffset(property));
+                return true;
+            }
 
-                if (target.HasProperty("_BaseMap"))
-                {
-                    target.SetTexture("_BaseMap", texture);
-                    target.SetTextureScale("_BaseMap", source.GetTextureScale(property));
-                    target.SetTextureOffset("_BaseMap", source.GetTextureOffset(property));
-                }
+            return false;
+        }
 
-                return;
+        private static void SetTextureOnTarget(Material target, Texture texture, Vector2 scale, Vector2 offset)
+        {
+            if (target.HasProperty("_MainTex"))
+            {
+                target.SetTexture("_MainTex", texture);
+                target.SetTextureScale("_MainTex", scale);
+                target.SetTextureOffset("_MainTex", offset);
+            }
+
+            if (target.HasProperty("_BaseMap"))
+            {
+                target.SetTexture("_BaseMap", texture);
+                target.SetTextureScale("_BaseMap", scale);
+                target.SetTextureOffset("_BaseMap", offset);
             }
         }
 
         private static void CopyColorProperty(Material source, Material target, params string[] propertyNames)
+        {
+            if (TryCopyColorFromProperties(source, target, propertyNames))
+            {
+                return;
+            }
+
+            var fallbackColor = source.color;
+            SetColorOnTarget(target, fallbackColor);
+        }
+
+        private static bool TryCopyColorFromProperties(Material source, Material target, string[] propertyNames)
         {
             foreach (var property in propertyNames)
             {
@@ -826,17 +859,23 @@ namespace Plant.TerrainDetails.Editor
                 }
 
                 var color = source.GetColor(property);
-                if (target.HasProperty("_Color"))
-                {
-                    target.SetColor("_Color", color);
-                }
+                SetColorOnTarget(target, color);
+                return true;
+            }
 
-                if (target.HasProperty("_BaseColor"))
-                {
-                    target.SetColor("_BaseColor", color);
-                }
+            return false;
+        }
 
-                return;
+        private static void SetColorOnTarget(Material target, Color color)
+        {
+            if (target.HasProperty("_Color"))
+            {
+                target.SetColor("_Color", color);
+            }
+
+            if (target.HasProperty("_BaseColor"))
+            {
+                target.SetColor("_BaseColor", color);
             }
         }
 

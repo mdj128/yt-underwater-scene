@@ -92,18 +92,28 @@ float3 ApplyPlantSway(float3 positionOS, float instancePhase, float heightMask)
 
     if (useDirectional > 0.5f)
     {
-        float2 windDir = normalize(_WindDirection);
-        float lenCheck = dot(windDir, windDir);
-        if (lenCheck < 1e-4f)
+        float3 windDirWS = float3(_WindDirection.x, 0.0f, _WindDirection.y);
+        float lenWS = dot(windDirWS, windDirWS);
+        if (lenWS < 1e-4f)
         {
-            windDir = float2(1, 0);
+            windDirWS = float3(1.0f, 0.0f, 0.0f);
         }
+        windDirWS = normalize(windDirWS);
+
+        float3 windDirOS3 = mul((float3x3)unity_WorldToObject, windDirWS);
+        float2 windDirOS = windDirOS3.xz;
+        float lenOS = dot(windDirOS, windDirOS);
+        if (lenOS < 1e-5f)
+        {
+            windDirOS = float2(1.0f, 0.0f);
+        }
+        windDirOS = normalize(windDirOS);
 
         float gust = sin(time * 0.45 + instancePhase * 0.7) * _WindGustStrength;
         float swayDirectional = (swayCombined + gust) * saturate(_WindStrength);
-        float2 perpDir = float2(-windDir.y, windDir.x);
+        float2 perpDir = float2(-windDirOS.y, windDirOS.x);
 
-        positionOS.xz += windDir * swayDirectional * heightMask;
+        positionOS.xz += windDirOS * swayDirectional * heightMask;
         positionOS.xz += perpDir * swayOrtho * heightMask * 0.35f;
     }
     else

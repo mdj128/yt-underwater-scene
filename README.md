@@ -1,5 +1,7 @@
 # Underwater Scene Tutorial Project
 
+![Underwater scene thumbnail](swim1.jpg)
+
 This repository accompanies a YouTube tutorial series on building an underwater exploration scene in Unity. It includes the swim-focused character controller, water/volume effects, animated vegetation, and terrain-detail tooling showcased in the videos so viewers can follow along or reuse the systems in their own projects.
 
 ## Highlights

@@ -8,6 +8,13 @@
         "com.unity.inputsystem": "1.6.3"
       }
     },
+    "com.plant.detailtoolkit": {
+      "version": "https://github.com/mdj128/yt-underwater-scene.git?path=PlantDetailToolkit",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "29a08d170e904da96bf651a0d5944a07bfaba024"
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.9",
       "depth": 0,

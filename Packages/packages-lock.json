@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.budorf.underwater-swim": {
+      "version": "file:../UnderwaterSwimController",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.inputsystem": "1.6.3"
+      }
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.9",
       "depth": 0,

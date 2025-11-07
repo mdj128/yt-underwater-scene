@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.budorf.underwater-swim": "file:../UnderwaterSwimController",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.cloud.gltfast": "6.14.1",
     "com.unity.collab-proxy": "2.10.0",

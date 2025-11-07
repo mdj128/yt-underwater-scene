@@ -1,0 +1,22 @@
+{
+  "name": "com.budorf.underwater-swim",
+  "displayName": "Underwater Swim Controller",
+  "version": "0.1.0",
+  "unity": "2021.3",
+  "description": "Camera-relative underwater locomotion, water-volume detection, and optional fog/bubble visuals ready for the Input System.",
+  "keywords": [
+    "water",
+    "swim",
+    "controller",
+    "underwater",
+    "movement"
+  ],
+  "documentationUrl": "Documentation~/index.md",
+  "dependencies": {
+    "com.unity.inputsystem": "1.6.3"
+  },
+  "author": {
+    "name": "budorf",
+    "url": "https://github.com/mdj128"
+  }
+}
